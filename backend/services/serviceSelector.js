@@ -11,5 +11,6 @@ export function serviceSelect(input,query) {
         taskMangament();
     } else {
         console.log("Invalid input");
+        return;
     }
 }

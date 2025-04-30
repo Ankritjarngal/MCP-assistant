@@ -4,7 +4,11 @@ import { authenticate } from '@google-cloud/local-auth';
 import { google } from 'googleapis';
 
 // Define scopes for Gmail API
-const SCOPES = ['https://www.googleapis.com/auth/gmail.send'];
+const SCOPES = [
+  'https://www.googleapis.com/auth/gmail.send',
+  'https://www.googleapis.com/auth/calendar'
+];
+;
 
 // Define paths relative to this file's location
 const TOKEN_PATH = path.join(process.cwd(), 'token.json');
@@ -45,7 +49,7 @@ async function getOAuth2Client() {
  * Gets a token silently if one exists, or generates a new one
  * with minimal UI interruption if necessary
  */
-async function authorize() {
+export async function authorize() {
   const oauth2Client = await getOAuth2Client();
   
   try {
@@ -74,7 +78,7 @@ async function authorize() {
  * Generate a new token using OAuth flow
  * This will open a browser window once
  */
-async function generateNewToken() {
+ async  function generateNewToken() {
   try {
     console.log('Starting OAuth authentication flow...');
     console.log('A browser window will open. Please authenticate and then return here.');
