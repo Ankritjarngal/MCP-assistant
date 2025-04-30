@@ -6,7 +6,7 @@ export function serviceSelect(input,query) {
     if (input === "mailing service") {
         mailingService(query);
     } else if (input === "google calendar") {
-        googleCalnder();
+        googleCalnder(query);
     } else if (input === "task management") {
         taskMangament();
     } else {
