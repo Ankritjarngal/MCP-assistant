@@ -15,9 +15,10 @@ export async function googleCalnder(query){
           const res = await createEventAgent(query);
           const createdEvent = await createEventAPI(res);
           console.log("Event created:", createdEvent);
+          return createdEvent;
         }
         else if(res=="reschedule_event"){
-          
+
         }
   
         else if(res=="cancel_event"){
@@ -28,6 +29,7 @@ export async function googleCalnder(query){
         const res= await listEventAgent(query);
         const listedEvents = await listEventAPI(res);
         console.log("Listed events:", listedEvents);
+        return listedEvents;
           
           
       

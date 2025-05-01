@@ -2,15 +2,18 @@ import { googleCalnder } from "./google-calender.js";
 import { mailingService } from "./mailing-service.js";
 import { taskMangament } from "./task-management.js";
 
-export function serviceSelect(input,query) {
+export async function serviceSelect(input, query) {
     if (input === "mailing service") {
-        mailingService(query);
+        const data = await mailingService(query);  // add await if this returns a Promise
+        return { service: "mailing service", item: data };
     } else if (input === "google calendar") {
-        googleCalnder(query);
+        const data = await googleCalnder(query);
+        return { service: "google calendar", item: data };
     } else if (input === "task management") {
-        taskMangament();
+        const data = await taskMangament(); // assuming it returns something
+        return { service: "task management", item: data };
     } else {
         console.log("Invalid input");
-        return;
+        return { service: "unknown", item: null };
     }
 }

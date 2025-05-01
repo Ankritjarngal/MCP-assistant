@@ -40,7 +40,7 @@ export async function mailingService(query) {
   try {
     const result = await sendMail({ to, subject, message });
     console.log("Mail sent:", result.id);
-    return result;
+    return parsedResponse;
   } catch (err) {
     console.error("Failed to send mail:", err);
     throw err;

@@ -12,13 +12,19 @@ app.use(cors());
 
 app.post('/api/submit', async (req, res) => {
     const data = req.body;
-    console.log(data);
-    const choice = await reason(data.query);
-    serviceSelect(choice,data.query);
+    console.log("Received:", data);
 
-    console.log(choice);
-    res.json({ message: choice });
+    try {
+        const choice = await reason(data.query);  
+        const responseFromMCP = await serviceSelect(choice, data.query);
+
+        res.json({ message: choice, res: responseFromMCP });
+    } catch (err) {
+        console.error("Error in /api/submit:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
 });
+
 
 app.listen(3001, () => {
     console.log('Server is running on port 3000');
