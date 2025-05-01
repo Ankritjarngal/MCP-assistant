@@ -3,8 +3,12 @@ import { createEventAgent } from './googleCalender-service/createEvent/createEve
 import { createEventAPI } from './googleCalender-service/createEvent/createEventAPI.js';
 import { listEventAgent } from './googleCalender-service/listEvents/listEventAgent.js';
 import { listEventAPI } from './googleCalender-service/listEvents/listEventAPI.js';
+import { editEventAgent } from './googleCalender-service/editEvent/editEventAgent.js';
+import { editEventAPI } from './googleCalender-service/editEvent/editEventAPI.js';
+import { deleteEventAgent } from './googleCalender-service/deleteEvent/deleteEventAgent.js';
+import { deleteEventAPI } from './googleCalender-service/deleteEvent/deleteEventAPI.js';
 export async function googleCalnder(query){
-    
+
      try{
         const res=await calendarOperationAgent(query);
     if (!res) {
@@ -18,10 +22,16 @@ export async function googleCalnder(query){
           return createdEvent;
         }
         else if(res=="reschedule_event"){
-
+          const res = await editEventAgent(query);
+          const updatedEvent = await editEventAPI(res);
+          console.log("Rechedule event :" , updatedEvent)
+          return updatedEvent;
         }
   
         else if(res=="cancel_event"){
+          const res=await deleteEventAgent(query);
+          const deletedEvent= await deleteEventAPI(res);
+          return deletedEvent
       
           }
   
