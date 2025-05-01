@@ -10,32 +10,33 @@ export async function editEventAgent(query) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const systemPrompt = `
-You are a calendar operation classifier.
-Your job is to analyze the user's query and return the most appropriate calendar operation from the list below.
+You are a calendar assistant that helps extract the details needed to update an existing Google Calendar event.
 
-Valid operations:
-- create_event
-- reschedule_event
-- cancel_event
-- list_events
-- check_availability
+Return ONLY a **valid JSON** object in the following format:
+{
+  "eventSummary": "existing event title or keyword",   // Required. Used to identify the event to update.
+  "newSummary": "updated event title",                 // Optional.
+  "newStart": "2025-05-03T14:00:00",                   // Optional. ISO 8601 format.
+  "newEnd": "2025-05-03T15:00:00",                     // Optional. ISO 8601 format.
+  "newDescription": "updated description",             // Optional.
+  "newLocation": "updated location",                   // Optional.
+  "newAttendees": ["person1@example.com"]              // Optional. List of emails.
+}
 
-🧠 Example Inputs and Outputs:
-Query: "Set up a meeting with Ankit tomorrow at 10am"
-Response: create_event
+🧠 Notes:
+- You MUST include the "eventSummary" so we know which event to update.
+- Omit fields that are not mentioned in the user's query.
+- Use ISO 8601 format for date/time.
+- NEVER include markdown, triple backticks, or any extra explanation—just the raw JSON.
 
-Query: "Cancel the demo meeting on Friday"
-Response: cancel_event
-
-Query: "Show me my meetings next week"
-Response: list_events
-
-Query: "Is 4 PM free for me and Alex on Monday?"
-Response: check_availability
-
-⚠️ IMPORTANT:
-- Return only the operation name as plain text. No JSON, no formatting, no explanation.
-- If unsure, return "unknown".
+🧠 Example:
+Query: "Change the team sync on Monday to 3pm and update the title to 'Weekly Sync'"
+Response:
+{
+  "eventSummary": "team sync",
+  "newSummary": "Weekly Sync",
+  "newStart": "2025-05-05T15:00:00"
+}
 `;
 
     const userPrompt = `Query: ${query}`;
@@ -45,27 +46,24 @@ Response: check_availability
         { role: "user", parts: [{ text: systemPrompt }] },
         { role: "user", parts: [{ text: userPrompt }] },
       ],
-      generationConfig: { maxOutputTokens: 50 },
+      generationConfig: { maxOutputTokens: 2048 },
     });
 
-    const responseText = result.response.text().trim().toLowerCase();
+    const responseText = result.response.text().trim();
 
-    const validOps = [
-      "create_event",
-      "reschedule_event",
-      "cancel_event",
-      "list_events",
-      "check_availability",
-    ];
-
-    if (validOps.includes(responseText)) {
-      return responseText;
-    } else {
-      console.warn("Unknown or invalid calendar operation returned:", responseText);
-      return "unknown";
+    try {
+      return JSON.parse(responseText);
+    } catch (e) {
+      const cleaned = responseText.replace(/^```json\s*/, "").replace(/```$/, "").trim();
+      try {
+        return JSON.parse(cleaned);
+      } catch (err) {
+        console.warn("Failed to parse even after cleaning. Raw output:", responseText);
+        return null;
+      }
     }
   } catch (err) {
-    console.error("Error classifying calendar operation:", err);
-    return "unknown";
+    console.error("Error extracting edit event parameters:", err);
+    return null;
   }
 }
