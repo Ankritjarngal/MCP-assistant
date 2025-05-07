@@ -4,15 +4,19 @@ import { taskMangament } from "./task-management.js";
 
 export async function serviceSelect(input, query) {
     if (input === "mailing service") {
-        const data = await mailingService(query);  // add await if this returns a Promise
+        const data = await mailingService(query); 
         return { service: "mailing service", item: data };
     } else if (input === "google calendar") {
         const data = await googleCalnder(query);
         return { service: "google calendar", item: data };
     } else if (input === "task management") {
-        const data = await taskMangament(); // assuming it returns something
+        const data = await taskMangament(); 
         return { service: "task management", item: data };
-    } else {
+    } else if (input === "documenting service") {
+        console.log("Documenting service is not implemented yet.");
+        return { service: "documenting service", item: null };
+    }
+    else {
         console.log("Invalid input");
         return { service: "unknown", item: null };
     }

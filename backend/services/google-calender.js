@@ -31,10 +31,9 @@ export async function googleCalnder(query){
         else if(res=="cancel_event"){
           const res=await deleteEventAgent(query);
           const deletedEvent= await deleteEventAPI(res);
-          return deletedEvent
-      
+          return deletedEvent      
           }
-  
+
       else if(res=="list_events"){
         const res= await listEventAgent(query);
         const listedEvents = await listEventAPI(res);

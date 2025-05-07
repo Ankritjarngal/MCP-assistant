@@ -34,11 +34,16 @@ The assistant currently supports the following tools and their capabilities:
    - Assign deadlines and configure reminders.
    - Track task completion and generate reports.
    - View, edit, or delete tasks.
+4. Documenting service 
+   - Create, edit, and manage documents.
+   - Collaborate with team members on documents.
+   - Store and organize documents in folders.
+    
 
 🧠 Your task is to read the user's natural language query and reason out which of the above tools is best suited to handle it. Output only the tool name in plain lowercase (e.g., "google calendar", "mailing service", or "task management"). If multiple tools are equally relevant, choose the most directly applicable one.
 
 The response must strictly be:
-"google calendar", "mailing service", or "task management".
+"google calendar", "mailing service", "documenting service" or "task management".
     `;
 
     const msg = `query by user: ${query}`;
