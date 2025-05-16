@@ -1,16 +1,16 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { OpenAI } from "openai";
 import { config } from "dotenv";
 config();
 
-const api_key = process.env.GOOGLE_KEY;
-const genAI = new GoogleGenerativeAI(api_key);
+const openai = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+});
 
 export async function createEventAgent(query) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-
     const systemPrompt = `
-You are a calendar assistant. Your task is to extract structured event information from a natural language query. 
+You are a calendar assistant. Your task is to extract structured event information from a natural language query.
 
 Return only a **valid JSON** object in the following format:
 {
@@ -41,15 +41,17 @@ Response:
 
     const userPrompt = `Query: ${query}`;
 
-    const result = await model.generateContent({
-      contents: [
-        { role: "user", parts: [{ text: systemPrompt }] },
-        { role: "user", parts: [{ text: userPrompt }] }
+    const result = await openai.chat.completions.create({
+      model: "meta-llama/llama-3.3-8b-instruct:free",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
       ],
-      generationConfig: { maxOutputTokens: 2048 },
+      temperature: 0.3,
+      max_tokens: 1024,
     });
 
-    const responseText = result.response.text().trim();
+    const responseText = result.choices[0].message.content.trim();
 
     try {
       return JSON.parse(responseText);

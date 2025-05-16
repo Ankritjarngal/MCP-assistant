@@ -1,14 +1,14 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { OpenAI } from "openai";
 import { config } from "dotenv";
 config();
 
-const api_key = process.env.GOOGLE_KEY;
-const genAI = new GoogleGenerativeAI(api_key);
+const openai = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+});
 
 export async function calendarOperationAgent(query) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-
     const systemPrompt = `
 You are a calendar operation classifier.
 Your job is to analyze the user's query and return the most appropriate calendar operation from the list below.
@@ -40,15 +40,17 @@ Response: check_availability
 
     const userPrompt = `Query: ${query}`;
 
-    const result = await model.generateContent({
-      contents: [
-        { role: "user", parts: [{ text: systemPrompt }] },
-        { role: "user", parts: [{ text: userPrompt }] },
+    const result = await openai.chat.completions.create({
+      model: "meta-llama/llama-3.3-8b-instruct:free",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
       ],
-      generationConfig: { maxOutputTokens: 50 },
+      temperature: 0,
+      max_tokens: 50,
     });
 
-    const responseText = result.response.text().trim().toLowerCase();
+    const responseText = result.choices[0].message.content.trim().toLowerCase();
 
     const validOps = [
       "create_event",

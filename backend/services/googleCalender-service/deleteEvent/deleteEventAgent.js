@@ -1,47 +1,64 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { OpenAI } from "openai";
 import { config } from "dotenv";
 config();
 
-const api_key = process.env.GOOGLE_KEY;
-const genAI = new GoogleGenerativeAI(api_key);
+const openai = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+});
 
 export async function deleteEventAgent(query) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-
-    const systemPrompt = `You are a calendar assistant. Your job is to extract the necessary information from a user's query to delete a specific event from Google Calendar.
+    const systemPrompt = `You are a smart calendar assistant. Your job is to extract the required details from a user's natural language query for the purpose of deleting an event from their Google Calendar.
 
 Return ONLY a valid JSON object with the following structure:
 {
   "eventSummary": "title of the event to delete",  // Required
-  "date": "2025-05-01"                             // Optional, ISO format (YYYY-MM-DD) to help narrow down the search
+  "date": "YYYY-MM-DD"                             // Optional — include only if mentioned or implied
 }
 
-💡 Notes:
-- Only include fields that the user provides or implies.
-- Omit the "date" field if no specific date is mentioned.
-- DO NOT include any explanation, markdown, or formatting. Output ONLY the raw JSON object.
+🧠 Instructions:
+- The "eventSummary" should clearly describe the event. If no official title is mentioned, infer a reasonable title from the query (e.g., "scheduling at 9 AM").
+- If a specific date is mentioned, extract and format it as "YYYY-MM-DD".
+- You may omit the "date" field only if it’s not mentioned or cannot be inferred.
+- Times (e.g., 9 AM) help define the summary but DO NOT go in the "date" field.
+- Your job is not to delete the event but to identify which one needs deletion.
 
-Example:
+⚠️ Strict Output Rules:
+- Output a single valid **raw JSON** object.
+- No explanations, no markdown, no backticks, and no additional text.
+
+✅ Example 1:
 Query: "Cancel my call with Sarah on May 3rd"
 Response:
 {
   "eventSummary": "call with Sarah",
   "date": "2025-05-03"
 }
+
+✅ Example 2:
+Query: "Delete the scheduling at 9 am on 16th May 2025 for TOC"
+Response:
+{
+  "eventSummary": "scheduling at 9 am for TOC",
+  "date": "2025-05-16"
+}
 `;
+
 
     const userPrompt = `Query: ${query}`;
 
-    const result = await model.generateContent({
-      contents: [
-        { role: "user", parts: [{ text: systemPrompt }] },
-        { role: "user", parts: [{ text: userPrompt }] }
+    const result = await openai.chat.completions.create({
+      model: "meta-llama/llama-3.3-8b-instruct:free",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
       ],
-      generationConfig: { maxOutputTokens: 2048 },
+      temperature: 0.3,
+      max_tokens: 1024,
     });
 
-    const responseText = result.response.text().trim();
+    const responseText = result.choices[0].message.content.trim();
 
     try {
       return JSON.parse(responseText);
