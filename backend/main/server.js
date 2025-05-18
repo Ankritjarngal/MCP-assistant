@@ -9,7 +9,9 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
-
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
 app.post('/api/submit', async (req, res) => {
     const data = req.body;
     console.log("Received:", data);
