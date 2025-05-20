@@ -1,7 +1,8 @@
 import { OpenAI } from "openai";
 import { config } from "dotenv";
+import { UsersForMcp } from "../database/db.js";
 
-import { getIntentsData, intents } from "./AllQueries.js";
+import { getIntentsData } from "./AllQueries.js";
 config();
 
 const openai = new OpenAI({
@@ -16,14 +17,12 @@ function cleanPlainMarkdown(response) {
     .trim();
 }
 
-export async function enhancedIntent(query, intent) {
-  if (intent in intents) {
-    intents[intent].push(query);
-    console.log(intents[intent]);
-
-  }
-  const data = getIntentsData(intent);
+export async function enhancedIntent( query,intent,email) {
+  
+  const data = await getIntentsData(query,intent, email);
   const finalQuery = await Agent(data, query);
+  console.log("Final query:", finalQuery);
+
   return finalQuery;
 }
 
@@ -38,7 +37,8 @@ You are an intelligent assistant component within a modular command processing (
 User query: "${query}"
 Context: ${contextSummary}
 
-Please provide a refined version of this query in plain text, making it as clear and detailed as possible for downstream processing.
+Please provide a refined version of this query in plain text, making it as clear and detailed as possible for downstream processing 
+**dont mention what changes you made just give a refined query**
 `;
 
   const result = await openai.chat.completions.create({

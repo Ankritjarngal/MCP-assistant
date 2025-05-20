@@ -18,7 +18,10 @@
     "express": "^5.1.0",
     "google-auth-library": "^9.15.1",
     "googleapis": "^148.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.0",
     "openai": "^4.98.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "zod": "^3.25.7"
   }
 }
