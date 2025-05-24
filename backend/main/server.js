@@ -7,11 +7,9 @@ import { serviceSelect } from '../services/serviceSelector.js';
 import { UsersForMcp } from '../database/db.js';
 import { createToken,verifyToken } from '../jsonWebtoken/Token.js';
 const app = express();
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
-
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' });
 }
@@ -21,8 +19,6 @@ app.post('/api/login', async (req, res) => {
 
     try {
         const find=UsersForMcp.find({ email });
-       
-        
         const token = createToken(email);
         res.status(201).json({ message: "User", user: {
             email: find.email,
