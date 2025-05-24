@@ -11,7 +11,9 @@ const SCOPES = [
 ;
 
 // Define paths relative to this file's location
-const TOKEN_PATH = path.join(process.cwd(), 'token.json');
+const TOKEN_PATH = process.env.NODE_ENV === 'production'
+  ? '/etc/secrets/token.json'
+  : path.join(process.cwd(), 'token.json');
 
 // Corrected path to client secrets - adjust this to match your folder structure
 const CREDENTIALS_PATH = process.env.NODE_ENV === 'production'
