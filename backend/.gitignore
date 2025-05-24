@@ -2,4 +2,4 @@
 node_modules/
 .env
 token.json
-googlesecrets/
+client_secre.json

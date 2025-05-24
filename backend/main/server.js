@@ -34,7 +34,9 @@ app.post('/api/login', async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 });
-
+app.post("/api/validate", verifyToken,async (req, res) => {
+    res.status(200).json({ message: "Token is valid" });
+})
 app.post('/api/register', async (req, res) => {
     const data = req.body;
     const { email,name,password } = data;
