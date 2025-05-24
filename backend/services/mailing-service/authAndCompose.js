@@ -14,7 +14,7 @@ const SCOPES = [
 const TOKEN_PATH = path.join(process.cwd(), 'token.json');
 
 // Corrected path to client secrets - adjust this to match your folder structure
-const CREDENTIALS_PATH = path.join(process.cwd(), '../googlesecrets/client_secret.json');
+const CREDENTIALS_PATH = path.join(process.cwd(), '../../main/client_secret.json');
 
 // Log paths for debugging
 console.log('Current working directory:', process.cwd());
