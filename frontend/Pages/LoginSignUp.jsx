@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
+import { useNavigate } from 'react-router-dom'
+
 
 function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
+  const navigate= useNavigate()
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -12,7 +15,7 @@ function AuthPage() {
         const decoded = jwtDecode(token)
         const now = Date.now() / 1000
         if (decoded.exp && now < decoded.exp) {
-          window.location.href = '/chat'
+          navigate('/chat')
         } else {
           localStorage.removeItem('token')
         }
@@ -68,6 +71,7 @@ function AuthPage() {
 export default AuthPage
 
 function LoginForm({ switchToSignup }) {
+  const navigate= useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
@@ -109,7 +113,7 @@ function LoginForm({ switchToSignup }) {
         successEl.classList.add('flex')
       }
 
-      setTimeout(() => (window.location.href = '/chat'), 1000)
+      setTimeout(() => {navigate('/chat')}, 1000)
     } catch (err) {
       const message = err.response?.data?.error || 'Authentication failed'
       if (message.includes('password')) {
@@ -172,6 +176,7 @@ function LoginForm({ switchToSignup }) {
 }
 
 function SignupForm({ switchToLogin }) {
+  const navigate= useNavigate()
   const [fullname, setFullname] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -223,7 +228,7 @@ function SignupForm({ switchToLogin }) {
         successEl.classList.add('flex')
       }
 
-      setTimeout(() => (window.location.href = '/chat'), 1000)
+      setTimeout(() =>{navigate('/chat')}, 1000)
     } catch (err) {
       const message = err.response?.data?.error || 'Registration failed'
       if (message.includes('exists')) {

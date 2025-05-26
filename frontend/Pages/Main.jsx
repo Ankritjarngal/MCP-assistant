@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import '../src/App.css'
 import RenderScore from '../src/RenderScore'
+import { useNavigate } from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode'
 import { FiLogOut } from 'react-icons/fi'   // logout icon
 
 function Main() {
+  const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [response, setResponse] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -42,10 +44,11 @@ function Main() {
   }, [queryHistory])
 
   const handleLogout = () => {
+
     localStorage.removeItem('token')
     localStorage.removeItem('email')
     setQueryHistory([])
-    window.location.href = '/'
+    navigate('/')
   }
 
   function handleClick() {
