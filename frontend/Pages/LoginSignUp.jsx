@@ -94,7 +94,7 @@ function LoginForm({ switchToSignup }) {
     setGeneralError('')
 
     try {
-      const res = await axios.post('https://mcp-assistant-backend.onrender.com/api/login', {
+      const res = await axios.post('http:/localhost:3001/api/login', {
         email: username,
         password,
       })
@@ -209,7 +209,7 @@ function SignupForm({ switchToLogin }) {
     setGeneralError('')
 
     try {
-      const res = await axios.post('https://mcp-assistant-backend.onrender.com/api/register', {
+      const res = await axios.post('http:/localhost:3001/api/register', {
         name: fullname,
         email: username,
         password,
