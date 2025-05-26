@@ -3,10 +3,9 @@ import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
 import { useNavigate } from 'react-router-dom'
 
-
 function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
-  const navigate= useNavigate()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -44,7 +43,6 @@ function AuthPage() {
         )}
       </div>
 
-      {/* Notification (now gray instead of green) */}
       <div
         id="successNotification"
         className="hidden fixed top-4 right-4 bg-gray-700 text-white px-6 py-3 rounded shadow-lg items-center space-x-2"
@@ -68,10 +66,8 @@ function AuthPage() {
   )
 }
 
-export default AuthPage
-
 function LoginForm({ switchToSignup }) {
-  const navigate= useNavigate()
+  const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
@@ -113,7 +109,7 @@ function LoginForm({ switchToSignup }) {
         successEl.classList.add('flex')
       }
 
-      setTimeout(() => {navigate('/chat')}, 1000)
+      setTimeout(() => navigate('/chat'), 1000)
     } catch (err) {
       const message = err.response?.data?.error || 'Authentication failed'
       if (message.includes('password')) {
@@ -176,7 +172,7 @@ function LoginForm({ switchToSignup }) {
 }
 
 function SignupForm({ switchToLogin }) {
-  const navigate= useNavigate()
+  const navigate = useNavigate()
   const [fullname, setFullname] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -228,7 +224,7 @@ function SignupForm({ switchToLogin }) {
         successEl.classList.add('flex')
       }
 
-      setTimeout(() =>{navigate('/chat')}, 1000)
+      setTimeout(() => navigate('/chat'), 1000)
     } catch (err) {
       const message = err.response?.data?.error || 'Registration failed'
       if (message.includes('exists')) {
@@ -323,3 +319,5 @@ function Input({ label, type, value, onChange, error, placeholder }) {
     </div>
   )
 }
+
+export default AuthPage
