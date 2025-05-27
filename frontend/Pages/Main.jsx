@@ -10,6 +10,7 @@ function Main() {
   const [response, setResponse] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [queryHistory, setQueryHistory] = useState(() => {
     const storedHistory = localStorage.getItem('queryHistory')
     return storedHistory ? JSON.parse(storedHistory) : []
@@ -102,6 +103,7 @@ function Main() {
       })
 
     setQuery('')
+    setSidebarOpen(false) // Close sidebar on mobile after submission
   }
 
   const handleHistoryClick = historyItem => {
@@ -113,6 +115,7 @@ function Main() {
       setResponse(null)
       setError(historyItem.status === 'error')
     }
+    setSidebarOpen(false) // Close sidebar on mobile after selection
   }
 
   const clearHistory = () => {
@@ -120,18 +123,50 @@ function Main() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-        {/* Logout Button */}
+    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+      {/* Mobile Header - only visible on small screens */}
+      <div className="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
         <button
-  onClick={handleLogout}
-  className="absolute top-4 right-4 z-20 flex items-center space-x-2 px-4 py-2 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 border border-blue-200 shadow-sm transition-all duration-200 font-medium"
-  title="Logout"
->
-  <span>Logout</span>
-  <FiLogOut className="w-5 h-5" />
-</button>
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-2 rounded hover:bg-gray-100"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <h1 className="text-lg font-semibold text-gray-900">Assistant</h1>
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-1 px-3 py-2 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200"
+        >
+          <span className="text-sm">Logout</span>
+          <FiLogOut className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Desktop Logout Button - only visible on large screens */}
+      <button
+        onClick={handleLogout}
+        className="hidden lg:flex absolute top-4 right-4 z-20 items-center space-x-2 px-4 py-2 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 border border-blue-200 shadow-sm transition-all duration-200 font-medium"
+        title="Logout"
+      >
+        <span>Logout</span>
+        <FiLogOut className="w-5 h-5" />
+      </button>
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-80 bg-white shadow-lg border-r border-gray-200">
+      <div className={`
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+        lg:translate-x-0 fixed lg:relative z-40 w-80 bg-white shadow-lg border-r border-gray-200 h-full lg:h-auto transition-transform duration-300 ease-in-out
+      `}>
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Query History</h2>
           <div className="flex items-center space-x-2">
@@ -143,7 +178,6 @@ function Main() {
                 Clear All
               </button>
             )}
-            
           </div>
         </div>
 
@@ -202,13 +236,13 @@ function Main() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="flex-1 py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
             <div className="space-y-6">
-              <h1 className="text-2xl font-bold text-gray-900 text-center mb-6">Assistant</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-6">Assistant</h1>
 
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <input
                   type="text"
                   value={query}
@@ -221,12 +255,12 @@ function Main() {
                   <button
                     onClick={handleClick}
                     disabled={!query.trim()}
-                    className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
                     Submit
                   </button>
                 ) : (
-                  <div className="flex items-center px-6">
+                  <div className="flex items-center justify-center py-2 px-6">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
                   </div>
                 )}
