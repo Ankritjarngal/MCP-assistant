@@ -66,7 +66,7 @@ function Main() {
 
     axios
       .post(
-        'http://localhost:3001/api/submit',
+        'https://mcp-assistant-backend.onrender.com/api/submit',
         { query, email: localStorage.getItem('email') },
         {
           headers: {
