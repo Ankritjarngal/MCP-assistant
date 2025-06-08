@@ -33,29 +33,22 @@ export async function authorize() {
   const oauth2Client = await getOAuth2Client();
 
   try {
-    const tokenContent = await fs.readFile(TOKEN_PATH, 'utf8');
-    const token = JSON.parse(tokenContent);
-    oauth2Client.setCredentials(token);
+    const tokenPath = path.join(process.cwd(), 'google_token.txt');
+    const rawToken = await fs.readFile(tokenPath, 'utf8');
 
-    const now = Date.now();
-    const expiryDate = token.expiry_date || 0;
+    if (!rawToken) throw new Error('Token is empty');
 
-    if (expiryDate <= now) {
-      console.log('🔁 Token expired. Attempting refresh...');
-      // This will use refresh_token internally if present
-      await oauth2Client.getAccessToken();
+    // Inject the raw access token
+    oauth2Client.setCredentials({ access_token: rawToken.trim() });
 
-      // Save the new credentials to a writable path
-      await fs.writeFile(TOKEN_WRITE_PATH, JSON.stringify(oauth2Client.credentials));
-      console.log('✅ Token refreshed and written to:', TOKEN_WRITE_PATH);
-    }
-
+    console.log('✅ Using raw token from token.txt for testing');
     return oauth2Client;
   } catch (err) {
-    console.error('❌ No valid token found or refresh failed:', err);
-    throw new Error('OAuth token missing or expired and cannot refresh in production.');
+    console.error('❌ Failed to read token.txt:', err);
+    throw new Error('Access token missing or unreadable from token.txt');
   }
 }
+
 
 /**
  * Load credentials from file and return OAuth2 client
@@ -74,9 +67,7 @@ async function getOAuth2Client() {
   }
 }
 
-/**
- * Send an email via Gmail API
- */
+
 export async function sendMail({ to, subject, message }) {
   try {
     const auth = await authorize();

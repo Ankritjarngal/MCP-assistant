@@ -2,4 +2,4 @@
 
 **soon**
 <br>
-**dedployment currently not scaled to multi user setup , google tokens issue :(**
+** making multiple users setup work  :)**

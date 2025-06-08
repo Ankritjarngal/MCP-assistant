@@ -3,7 +3,7 @@ import axios from 'axios'
 import '../src/App.css'
 import RenderScore from '../src/RenderScore'
 import { jwtDecode } from 'jwt-decode'
-import { FiLogOut } from 'react-icons/fi'   // logout icon
+import { FiLogOut } from 'react-icons/fi'  
 
 function Main() {
   const [query, setQuery] = useState('')
@@ -11,24 +11,31 @@ function Main() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false);
+
   const [queryHistory, setQueryHistory] = useState(() => {
     const storedHistory = localStorage.getItem('queryHistory')
     return storedHistory ? JSON.parse(storedHistory) : []
   })
-
+  
   useEffect(() => {
     const token = localStorage.getItem('token')
+  
     if (token) {
       try {
         const decoded = jwtDecode(token)
         const now = Date.now() / 1000
-
+  
         if (!decoded.exp || now >= decoded.exp) {
+          console.log('[DEBUG] Token expired')
           localStorage.removeItem('token')
           localStorage.removeItem('email')
           window.location.href = '/'
+        } else {
+          setAuthChecked(true)
         }
       } catch (err) {
+        console.log('[DEBUG] Error decoding token:', err)
         localStorage.removeItem('token')
         localStorage.removeItem('email')
         window.location.href = '/'
@@ -37,6 +44,8 @@ function Main() {
       window.location.href = '/'
     }
   }, [])
+  
+  
 
   useEffect(() => {
     localStorage.setItem('queryHistory', JSON.stringify(queryHistory))
@@ -67,7 +76,7 @@ function Main() {
 
     axios
       .post(
-        'https://mcp-assistant-backend.onrender.com/api/submit',
+        'http://localhost:3001/api/submit',
         { query, email: localStorage.getItem('email') },
         {
           headers: {
@@ -285,4 +294,4 @@ function Main() {
   )
 }
 
-export default Main
+export default Main  
