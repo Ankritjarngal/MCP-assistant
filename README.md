@@ -2,4 +2,4 @@
 
 **soon**
 <br>
-** making multiple users setup work  :)**
+**making oauth for multiple users work**
