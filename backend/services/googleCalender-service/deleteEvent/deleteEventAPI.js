@@ -1,9 +1,9 @@
 import { google } from 'googleapis';
 import { authorize } from '../../mailing-service/authAndCompose.js';
 
-export async function deleteEventAPI({ eventSummary, date }) {
+export async function deleteEventAPI({ eventSummary, date }, email){
   try {
-    const auth = await authorize();
+    const auth = await authorize(email);
     const calendar = google.calendar({ version: 'v3', auth });
     
     // Build search parameters

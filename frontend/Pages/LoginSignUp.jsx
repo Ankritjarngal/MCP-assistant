@@ -28,8 +28,59 @@ function AuthPage() {
       }
     }
 
+    // Check for authorization code in URL params
+    const urlParams = new URLSearchParams(window.location.search)
+    const code = urlParams.get('code')
+    const error = urlParams.get('error')
+    
+    if (error) {
+      setError('Authorization was denied or failed')
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname)
+    } else if (code) {
+      handleAuthorizationCode(code)
+    }
+
     initializeGoogleOAuth()
   }, [navigate])
+
+  const handleAuthorizationCode = async (code) => {
+    setLoading(true)
+    setError('')
+
+    try {
+      // Send the authorization code to your backend
+      const res = await axios.post('http://localhost:3001/api/auth', {
+        code: code,
+        // Include any additional data your backend needs
+      })
+      
+      const token = res.data.token
+      
+      localStorage.setItem('token', token)
+      localStorage.setItem('email', res.data.email)
+
+      const successEl = document.getElementById('successNotification')
+      if (successEl) {
+        successEl.children[1].textContent = 'Logged in successfully!'
+        successEl.classList.remove('hidden')
+        successEl.classList.add('flex')
+      }
+
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname)
+      
+      setTimeout(() => navigate('/chat'), 1000)
+    } catch (err) {
+      console.error('Auth code exchange error:', err)
+      const message = err.response?.data?.error || err.message || 'Authentication failed'
+      setError(message)
+      // Clean up URL on error
+      window.history.replaceState({}, document.title, window.location.pathname)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const initializeGoogleOAuth = () => {
     if (!window.google) {
@@ -44,10 +95,11 @@ function AuthPage() {
     }
   }
 
-  let tokenClient
+  let codeClient
 
   const setupGoogleOAuth = () => {
-    tokenClient = window.google.accounts.oauth2.initTokenClient({
+    // Use authorization code flow instead of implicit flow
+    codeClient = window.google.accounts.oauth2.initCodeClient({
       client_id: GOOGLE_CLIENT_ID,
       scope: [
         'https://www.googleapis.com/auth/gmail.send',
@@ -55,58 +107,18 @@ function AuthPage() {
         'email',
         'profile'
       ].join(' '),
-      callback: handleGoogleOAuthResponse,
+      ux_mode: 'redirect',
+      redirect_uri: 'http://localhost:5173',
+      // Request offline access to get refresh token
+      access_type: 'offline',
+      // Force approval prompt to ensure refresh token
+      prompt: 'consent'
     })
   }
 
-  const handleGoogleOAuthResponse = async (response) => {
-    setLoading(true)
-    setError('')
-
-    try {
-      if (!response.access_token) {
-        throw new Error('No access token received')
-      }
-
-      const userInfoRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: {
-          Authorization: `Bearer ${response.access_token}`,
-        },
-      })
-
-      const user = userInfoRes.data
-
-      const res = await axios.post('http://localhost:3001/api/auth', {
-        token: response.access_token,
-        email: user.email,
-        name: user.name
-      })
-      const token = res.data.token
-
-
-      localStorage.setItem('token',token)
-      localStorage.setItem('email', res.data.email)
-
-      const successEl = document.getElementById('successNotification')
-      if (successEl) {
-        successEl.children[1].textContent = 'Logged in successfully!'
-        successEl.classList.remove('hidden')
-        successEl.classList.add('flex')
-      }
-
-      setTimeout(() => navigate('/chat'), 1000)
-    } catch (err) {
-      console.error('OAuth error:', err)
-      const message = err.response?.data?.error || err.message || 'Authentication failed'
-      setError(message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleSignInClick = () => {
-    if (window.google && window.google.accounts.oauth2 && tokenClient) {
-      tokenClient.requestAccessToken()
+    if (window.google && window.google.accounts.oauth2 && codeClient) {
+      codeClient.requestCode()
     } else {
       setError('Google OAuth not initialized')
     }

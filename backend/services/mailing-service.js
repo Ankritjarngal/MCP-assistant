@@ -1,7 +1,7 @@
 import { sendMail } from "./mailing-service/authAndCompose.js";
 import { mailAgent } from "./mailing-service/mailAgent.js";
 
-export async function mailingService(query) {
+export async function mailingService(query,email) {
   console.log("mailing service");
   const responseText = await mailAgent(query);
   
@@ -38,7 +38,7 @@ export async function mailingService(query) {
   }
   
   try {
-    const result = await sendMail({ to, subject, message });
+    const result = await sendMail({ to, subject, message ,email});
     console.log("Mail sent:", result.id);
     return parsedResponse;
   } catch (err) {

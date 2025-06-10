@@ -6,15 +6,15 @@ import { enhancedIntent } from "../intentEnhancer/intentEnhancerAgent.js";
 export async function serviceSelect(input, query,email) {
     if (input === "mailing service") {
         const enhancedQuery= await enhancedIntent(query, "mailing service",email);
-        const data = await mailingService(enhancedQuery); 
+        const data = await mailingService(enhancedQuery,email); 
         return { service: "mailing service", item: data };
     } else if (input === "google calendar") {
         const enhancedQuery= await enhancedIntent(query, "google calendar",email);
-        const data = await googleCalnder(enhancedQuery);
+        const data = await googleCalnder(enhancedQuery,email);
         return { service: "google calendar", item: data };
     } else if (input === "task management") {
         const enhancedQuery= await enhancedIntent(query, "task management",email);
-        const data = await taskMangament(enhancedQuery); 
+        const data = await taskMangament(enhancedQuery,email); 
         return { service: "task management", item: data };
     } else if (input === "documenting service") {
 

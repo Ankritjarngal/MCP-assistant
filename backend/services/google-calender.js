@@ -7,7 +7,7 @@ import { editEventAgent } from './googleCalender-service/editEvent/editEventAgen
 import { editEventAPI } from './googleCalender-service/editEvent/editEventAPI.js';
 import { deleteEventAgent } from './googleCalender-service/deleteEvent/deleteEventAgent.js';
 import { deleteEventAPI } from './googleCalender-service/deleteEvent/deleteEventAPI.js';
-export async function googleCalnder(query){
+export async function googleCalnder(query,email){
 
      try{
         const res=await calendarOperationAgent(query);
@@ -17,26 +17,26 @@ export async function googleCalnder(query){
       }
         if(res=="create_event"){
           const res = await createEventAgent(query);
-          const createdEvent = await createEventAPI(res);
+          const createdEvent = await createEventAPI(res,email);
           console.log("Event created:", createdEvent);
           return createdEvent;
         }
         else if(res=="reschedule_event"){
           const res = await editEventAgent(query);
-          const updatedEvent = await editEventAPI(res);
+          const updatedEvent = await editEventAPI(res,email);
           console.log("Rechedule event :" , updatedEvent)
           return updatedEvent;
         }
   
         else if(res=="cancel_event"){
           const res=await deleteEventAgent(query);
-          const deletedEvent= await deleteEventAPI(res);
+          const deletedEvent= await deleteEventAPI(res,email);
           return deletedEvent      
           }
 
       else if(res=="list_events"){
         const res= await listEventAgent(query);
-        const listedEvents = await listEventAPI(res);
+        const listedEvents = await listEventAPI(res,email);
         console.log("Listed events:", listedEvents);
         return listedEvents;
           

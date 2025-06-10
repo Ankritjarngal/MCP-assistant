@@ -1,9 +1,9 @@
 import { google } from 'googleapis';
 import { authorize } from '../../mailing-service/authAndCompose.js';  
 
-export async function listEventAPI({ timeMin, timeMax, query = '', calendarId = 'primary' }) {
+export async function listEventAPI({ timeMin, timeMax, query = '', calendarId = 'primary' }, email) {
   try {
-    const oauth2Client = await authorize();
+    const oauth2Client = await authorize(email);
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
     const params = {
