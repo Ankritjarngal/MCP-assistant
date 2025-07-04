@@ -56,7 +56,7 @@ The response must strictly be:
     const msg = `query by user: ${query}`;
 
     const result = await openai.chat.completions.create({
-      model: "meta-llama/llama-3.3-8b-instruct:free",
+      model: "openrouter/cypher-alpha:free",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: msg }

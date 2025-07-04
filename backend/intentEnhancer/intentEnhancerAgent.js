@@ -49,7 +49,7 @@ Context summary: ${contextSummary}
 `;
 
   const result = await openai.chat.completions.create({
-    model: "meta-llama/llama-3.3-8b-instruct:free",
+    model: "openrouter/cypher-alpha:free",
     messages: [
       { role: "system", content: "You are a helpful assistant that refines queries for downstream agents." },
       { role: "user", content: detailedPrompt }
