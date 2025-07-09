@@ -22,7 +22,7 @@ const TOKEN_WRITE_PATH = IS_PROD
 
 // Prefer env var for client secret path in production
 const CREDENTIALS_PATH = IS_PROD
-  ? process.env.CLIENT_SECRET_PATH || '/etc/secrets/client_secret.json'
+  ? process.env.CLIENT_SECRET_PATH
   : path.join(process.cwd(), '../googlesecrets/client_secret.json');
 
 /**
