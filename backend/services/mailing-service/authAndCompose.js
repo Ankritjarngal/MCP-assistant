@@ -8,15 +8,21 @@ const SCOPES = [
   'https://www.googleapis.com/auth/calendar'
 ];
 
+const path = require('path');
+
 const IS_PROD = process.env.NODE_ENV === 'production';
+
 const TOKEN_PATH = IS_PROD
   ? '/etc/secrets/token.json'
   : path.join(process.cwd(), 'token.json');
+
 const TOKEN_WRITE_PATH = IS_PROD
   ? '/tmp/token.json'
   : TOKEN_PATH;
+
+// Prefer env var for client secret path in production
 const CREDENTIALS_PATH = IS_PROD
-  ? '/etc/secrets/client_secret.json'
+  ? process.env.CLIENT_SECRET_PATH || '/etc/secrets/client_secret.json'
   : path.join(process.cwd(), '../googlesecrets/client_secret.json');
 
 /**

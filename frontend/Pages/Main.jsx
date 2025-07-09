@@ -76,7 +76,7 @@ function Main() {
 
     axios
       .post(
-        'zz/api/submit',
+        'http://localhost:3001/api/submit',
         { query, email: localStorage.getItem('email') },
         {
           headers: {
