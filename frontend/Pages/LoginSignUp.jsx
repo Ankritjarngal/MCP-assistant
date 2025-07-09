@@ -50,7 +50,7 @@ function AuthPage() {
 
     try {
       // Send the authorization code to your backend
-      const res = await axios.post('http://localhost:3001/api/auth', {
+      const res = await axios.post('https://mcp-assistant-backend.onrender.com/api/auth', {
         code: code,
         // Include any additional data your backend needs
       })
@@ -109,9 +109,7 @@ function AuthPage() {
       ].join(' '),
       ux_mode: 'redirect',
       redirect_uri: 'http://localhost:5173',
-      // Request offline access to get refresh token
       access_type: 'offline',
-      // Force approval prompt to ensure refresh token
       prompt: 'consent'
     })
   }
