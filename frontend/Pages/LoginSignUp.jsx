@@ -108,7 +108,8 @@ function AuthPage() {
         'profile'
       ].join(' '),
       ux_mode: 'redirect',
-      redirect_uri: 'http://localhost:5173',
+      redirect_uri: window.location.origin,
+
       // Request offline access to get refresh token
       access_type: 'offline',
       // Force approval prompt to ensure refresh token
