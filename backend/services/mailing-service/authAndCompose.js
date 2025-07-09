@@ -8,7 +8,6 @@ const SCOPES = [
   'https://www.googleapis.com/auth/calendar'
 ];
 
-const path = require('path');
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 
