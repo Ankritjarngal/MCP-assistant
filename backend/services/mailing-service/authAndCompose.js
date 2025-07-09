@@ -19,11 +19,10 @@ const TOKEN_WRITE_PATH = IS_PROD
   ? '/tmp/token.json'
   : TOKEN_PATH;
 
-// Prefer env var for client secret path in production
-const CREDENTIALS_PATH = IS_PROD
-  ? process.env.CLIENT_SECRET_PATH
-  : path.join(process.cwd(), '../googlesecrets/client_secret.json');
 
+const CREDENTIALS_PATH = IS_PROD
+  ? null
+  : path.join(process.cwd(), '../googlesecrets/client_secret.json');
 /**
  * Load and return an authorized OAuth2 client with token validation and refresh
  */
@@ -134,18 +133,32 @@ function isTokenExpired(token) {
 /**
  * Load credentials from file and return OAuth2 client
  */
+
+
 async function getOAuth2Client() {
   try {
-    await fs.access(CREDENTIALS_PATH);
-    const content = await fs.readFile(CREDENTIALS_PATH, 'utf8');
-    const credentials = JSON.parse(content);
+    let credentials;
+
+    if (IS_PROD) {
+      if (!process.env.GOOGLE_CLIENT_SECRET_JSON) {
+        throw new Error('❌ GOOGLE_CLIENT_SECRET_JSON environment variable is missing.');
+      }
+      credentials = JSON.parse(process.env.GOOGLE_CLIENT_SECRET_JSON);
+    } else {
+      await fs.access(CREDENTIALS_PATH);
+      const content = await fs.readFile(CREDENTIALS_PATH, 'utf8');
+      credentials = JSON.parse(content);
+    }
+
     const { client_secret, client_id, redirect_uris } = credentials.installed || credentials.web;
+
     return new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
   } catch (err) {
-    console.error('❌ Failed to load client secret file:', err);
+    console.error('❌ Failed to load client credentials:', err);
     throw err;
   }
 }
+
 
 /**
  * Send email with automatic token refresh
