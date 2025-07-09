@@ -7,21 +7,21 @@ const SCOPES = [
   'https://www.googleapis.com/auth/gmail.send',
   'https://www.googleapis.com/auth/calendar'
 ];
+
 const IS_PROD = process.env.NODE_ENV === 'production';
+const TOKEN_PATH = IS_PROD
+  ? '/etc/secrets/token.json'
+  : path.join(process.cwd(), 'token.json');
+const TOKEN_WRITE_PATH = IS_PROD
+  ? '/tmp/token.json'
+  : TOKEN_PATH;
+const CREDENTIALS_PATH = IS_PROD
+  ? '/etc/secrets/client_secret.json'
+  : path.join(process.cwd(), '../googlesecrets/client_secret.json');
 
-let credentials;
-
-if (IS_PROD) {
-  // 🔐 Use credentials from env variable
-  credentials = JSON.parse(process.env.GOOGLE_CLIENT_SECRET_JSON);
-} else {
-  // 📁 Read from file in dev
-  const CREDENTIALS_PATH = path.join(process.cwd(), '../googlesecrets/client_secret.json');
-  const content = await fs.readFile(CREDENTIALS_PATH, 'utf8');
-  credentials = JSON.parse(content);
-}
-
-
+/**
+ * Load and return an authorized OAuth2 client with token validation and refresh
+ */
 export async function authorize(userEmail) {
   const oauth2Client = await getOAuth2Client();
   
