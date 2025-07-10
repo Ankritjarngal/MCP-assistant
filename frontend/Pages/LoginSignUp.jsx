@@ -108,7 +108,7 @@ function AuthPage() {
         'profile'
       ].join(' '),
       ux_mode: 'redirect',
-      redirect_uri: 'https://mcp-assistant.vercel.app/',
+      redirect_uri: 'https://mcp-assistant.vercel.app',
       // Request offline access to get refresh token
       access_type: 'offline',
       // Force approval prompt to ensure refresh token
