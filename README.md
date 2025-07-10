@@ -1,16 +1,16 @@
 
-#  MCP Assistant
+# 🤖 MCP Assistant
 
 **MCP Assistant** is a modular, intelligent AI-powered framework that connects natural language queries to real-world services like **Google Calendar** and **Gmail**. Built on a stateless, agent-based architecture, it converts vague, multi-step human instructions into actionable operations using contextual awareness and memory.
 
 ---
 
-##  What It Does
+## 🧠 What It Does
 
--  Detects user intent (e.g., mailing, scheduling).
--  Enhances vague queries using context (e.g., previous messages, dates).
--  Routes queries to the correct service pipeline (calendar, email, etc.).
--  Executes the action through real Google services.
+- 🧭 Detects user intent (e.g., mailing, scheduling).
+- 🔍 Enhances vague queries using context (e.g., previous messages, dates).
+- 🔁 Routes queries to the correct service pipeline (calendar, email, etc.).
+- 🛠️ Executes the action through real Google services.
 
 > Example:
 > - _“Send an email to prof.john@example.com saying I’ll miss today’s lecture”_ → Gmail
@@ -18,11 +18,11 @@
 
 ---
 
-##  Architecture
+## 🧱 Architecture
 
 MCP Assistant is built on modular components that handle each stage of query understanding, enhancement, and execution.
 
-###  High-Level Flow
+### 🔄 High-Level Flow
 
 ![MCP Assistant Flow Diagram](https://github.com/user-attachments/assets/37e91a49-2314-422e-8fc4-e4726795692c)
 
@@ -39,18 +39,18 @@ All interactions are routed through an **agent-based pipeline** with logic to ha
 
 ---
 
-##  Live Experience
+## 🌐 Live Experience
 
 👉 **[Try It Live](https://mcp-assistant.vercel.app)** (Google Sign-In Required)
 
-###  Tips for best results:
+### 📝 Tips for best results:
 - ✔️ Use **full email addresses** the first time when sending mail  
 - ✔️ Use **complete dates/times** at least once per session (e.g., `July 20 at 3 PM`)
 - ✔️ Follow-ups like _“send it again to him”_ or _“reschedule that”_ will work **once context is set**
 
 ---
 
-##  AI Model & Reasoning
+## 🧠 AI Model & Reasoning
 
 - Powered by **Cypher-Alpha** via **OpenRouter**
 - Performs dynamic intent detection, multi-turn memory reasoning, and query expansion
@@ -58,7 +58,7 @@ All interactions are routed through an **agent-based pipeline** with logic to ha
 
 ---
 
-##  Authentication
+## 🔐 Authentication
 
 - Google OAuth 2.0 Authorization Code Flow
 - Tokens stored securely on backend
