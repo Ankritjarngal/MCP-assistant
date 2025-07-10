@@ -23,7 +23,7 @@ MCP Assistant is built on modular components that handle each stage of query und
 
 ### 🔄 High-Level Flow
 
-![MCP Assistant Flow Diagram](./3c8d5324-96b0-462d-9dde-a5bf4f5ba753.png)
+![MCP Assistant Flow Diagram](https://github.com/user-attachments/assets/37e91a49-2314-422e-8fc4-e4726795692c)
 
 ### Core Workflow:
 1. **User Query**
