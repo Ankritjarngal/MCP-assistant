@@ -1,4 +1,3 @@
-
 # 🤖 MCP Assistant
 
 **MCP Assistant** is a modular, intelligent AI-powered framework that connects natural language queries to real-world services like **Google Calendar** and **Gmail**. Built on a stateless, agent-based architecture, it converts vague, multi-step human instructions into actionable operations using contextual awareness and memory.
@@ -24,18 +23,20 @@ MCP Assistant is built on modular components that handle each stage of query und
 
 ### 🔄 High-Level Flow
 
-![MCP Assistant Flow Diagram](https://github.com/user-attachments/assets/37e91a49-2314-422e-8fc4-e4726795692c)
+![MCP Assistant Flow Diagram](./3c8d5324-96b0-462d-9dde-a5bf4f5ba753.png)
 
 ### Core Workflow:
-1. **User Query** →  
-2. **Service Selecting Agent**  
-3. **Cypher-Alpha Reasoning** via OpenRouter → Enhances the Query  
-4. **Query Execution** via:
-   - 📅 Google Calendar API
-   - 📧 Gmail API
-5. **Response Returned**
+1. **User Query**
+2. → **Service Selecting Agent**
+3. → **Cypher-Alpha Reasoning** via OpenRouter
+4. → **Enhanced Query with Context**
+5. → Routed to:
+   - 📅 **Google Calendar Service** (Each operation has a dedicated Calendar Agent)
+   - 📧 **Mailing Service** (Each operation handled by a dedicated Mail Agent)
+6. → **Task Executed via API**
+7. → **Response Returned**
 
-All interactions are routed through an **agent-based pipeline** with logic to handle fallbacks, vague inputs, and service switching.
+All service-specific tasks (like "create event", "edit event", "send mail", etc.) have **dedicated modular agents and API routes**, enhancing separation of logic and scaling.
 
 ---
 
@@ -52,17 +53,21 @@ All interactions are routed through an **agent-based pipeline** with logic to ha
 
 ## 🧠 AI Model & Reasoning
 
-- Powered by **Cypher-Alpha** via **OpenRouter**
-- Performs dynamic intent detection, multi-turn memory reasoning, and query expansion
-- Augments vague queries (e.g., “Send that again” → “Send previous mail to john@example.com again”)
+- Powered entirely by **Cypher-Alpha** via **OpenRouter**
+- Used for:
+  - 🔍 Intent Detection
+  - 🧠 Multi-turn Query Enrichment
+  - 🧩 Context-Aware Routing
+  - 📬 Calendar/Mail Agent-Level Execution
+- Each agent (mailing, calendar, etc.) uses the **same model** to ensure unified reasoning quality.
 
 ---
 
 ## 🔐 Authentication
 
 - Google OAuth 2.0 Authorization Code Flow
-- Tokens stored securely on backend
-- JWTs issued for session management
+- Tokens securely handled
+- JWTs used for frontend-backend auth sessions
 
 ---
 
@@ -82,9 +87,13 @@ All interactions are routed through an **agent-based pipeline** with logic to ha
 ## 🔌 Modularity
 
 Each supported service (Mail, Calendar, etc.) is:
-- Isolated in its own module
-- Extendable by plugging in new agents
-- Controlled through an intelligent routing system
+
+- 🧱 Broken down into **agent + API** per operation for each service 
+  - e.g., `MailAgent`, `CreateEventAgent`, `RescheduleEventAgent`
+- 🔁 Plug-and-play — easily add services like Tasks, Notion, Discord  
+- 🧠 Each agent uses its own **Cypher-Alpha** powered logic
+
+This makes the assistant robust, scalable, and easy to extend with minimal changes.
 
 ---
 
@@ -94,13 +103,13 @@ Each supported service (Mail, Calendar, etc.) is:
 - 🗣️ Voice command input  
 - 💬 Slack/Discord bot version  
 - 📊 Usage analytics and logs  
+- 🌐 Session-level memory storage (opt-in)
 
 ---
 
-
 ## ✨ Final Notes
 
-MCP Assistant isn’t just a chatbot — it’s a **modular, production-ready assistant** capable of acting on your behalf through intelligent understanding and real-world service integration.
+MCP Assistant isn’t just a chatbot — it’s a **assistant framework** with modular, intelligent agents that connect vague user input to real-world API actions.
 
 > ✅ Key Reminders:
 > - Always give full email address in your **first email command**
@@ -109,3 +118,4 @@ MCP Assistant isn’t just a chatbot — it’s a **modular, production-ready as
 
 ---
 
+Built with modularity, clarity, and next-gen reasoning in mind — powered fully by Cypher-Alpha 🚀
