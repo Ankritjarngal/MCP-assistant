@@ -28,7 +28,7 @@ MCP Assistant is built on modular components that handle each stage of query und
 ### Core Workflow:
 1. **User Query**
 2. → **Service Selecting Agent**
-3. → **Cypher-Alpha Reasoning** via OpenRouter
+3. → **DeepSeek R1:Free** via OpenRouter
 4. → **Enhanced Query with Context**
 5. → Routed to:
    - 📅 **Google Calendar Service** (Each operation has a dedicated Calendar Agent)
@@ -53,7 +53,7 @@ All service-specific tasks (like "create event", "edit event", "send mail", etc.
 
 ## 🧠 AI Model & Reasoning
 
-- Powered entirely by **Cypher-Alpha** via **OpenRouter**
+- Powered entirely by **DeepSeek R1:Free** via **OpenRouter**
 - Used for:
   - 🔍 Intent Detection
   - 🧠 Multi-turn Query Enrichment
@@ -78,7 +78,7 @@ All service-specific tasks (like "create event", "edit event", "send mail", etc.
 | Frontend     | React, Tailwind CSS, Vite    |
 | Backend      | Node.js, Express             |
 | Auth         | Google OAuth 2.0             |
-| AI Engine    | Cypher-Alpha via OpenRouter  |
+| AI Engine    | DeepSeek R1 via OpenRouter   |
 | DB           | MongoDB                      |
 | Hosting      | Vercel (Frontend), Render (Backend) |
 
@@ -91,7 +91,7 @@ Each supported service (Mail, Calendar, etc.) is:
 - 🧱 Broken down into **agent + API** per operation for each service 
   - e.g., `MailAgent`, `CreateEventAgent`, `RescheduleEventAgent`
 - 🔁 Plug-and-play — easily add services like Tasks, Notion, Discord  
-- 🧠 Each agent uses its own **Cypher-Alpha** powered logic
+- 🧠 Each agent uses its own **DeepSeek R1** powered logic
 
 This makes the assistant robust, scalable, and easy to extend with minimal changes.
 
@@ -118,4 +118,3 @@ MCP Assistant isn’t just a chatbot — it’s a **assistant framework** with m
 
 ---
 
-Built with modularity, clarity, and next-gen reasoning in mind — powered fully by Cypher-Alpha 🚀
