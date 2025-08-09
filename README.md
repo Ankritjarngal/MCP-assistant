@@ -117,4 +117,4 @@ MCP Assistant isn’t just a chatbot — it’s a **assistant framework** with m
 > - Context improves after 1-2 inputs in the same session
 
 ---
-
+.
