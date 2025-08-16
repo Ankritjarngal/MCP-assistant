@@ -56,7 +56,7 @@ The response must strictly be:
     const msg = `query by user: ${query}`;
 
     const result = await openai.chat.completions.create({
-      model: "openrouter/cypher-alpha:free",
+      model: "deepseek/deepseek-chat-v3-0324:free",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: msg }
