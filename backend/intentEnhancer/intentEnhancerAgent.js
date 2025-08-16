@@ -49,7 +49,7 @@ Context summary: ${contextSummary}
 `;
 
   const result = await openai.chat.completions.create({
-    model: "openrouter/cypher-alpha:free",
+    model: "deepseek/deepseek-chat-v3-0324:free",
     messages: [
       { role: "system", content: "You are a helpful assistant that refines queries for downstream agents." },
       { role: "user", content: detailedPrompt }
