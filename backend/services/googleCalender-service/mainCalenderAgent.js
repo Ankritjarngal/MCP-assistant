@@ -8,7 +8,7 @@ export async function calendarOperationAgent(query) {
       throw new Error("GEMINI_API_KEY is not set in the environment variables.");
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
     const systemPrompt = `You are a calendar operation classifier. Your job is to analyze the user's query and determine the most appropriate calendar operation.
 

@@ -9,7 +9,7 @@ export async function reason(query) {
       throw new Error("GOOGLE_API_KEY is not set in the environment variables.");
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
     const systemPrompt = `You are an intelligent component in a server that selects the most suitable internal tool based on a user query. Your only job is to determine which tool is appropriate.
 

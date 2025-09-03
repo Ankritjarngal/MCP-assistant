@@ -25,7 +25,7 @@ async function Agent(data, query, intent) {
     }
     
     // Using 'gemini-2.5-flash-latest' as it's more current than the preview version
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
     const contextSummary = data.length > 0 ?
       `Previous related queries: ${data.join("; ")}.` :

@@ -8,7 +8,7 @@ export async function deleteEventAgent(query) {
       throw new Error("GOOGLE_API_KEY is not set in the environment variables.");
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
     const systemPrompt = `You are a smart calendar assistant. Your job is to extract the details needed to delete a Google Calendar event from a user's query. The current date is Thursday, September 4, 2025; use this to resolve relative dates like "today" or "tomorrow".
 

@@ -8,7 +8,7 @@ export async function editEventAgent(query) {
       throw new Error("GOOGLE_API_KEY is not set in the environment variables.");
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
     const systemPrompt = `You are a calendar assistant that extracts details to update an existing event. The current date is Thursday, September 4, 2025. Use this to resolve relative dates.
 

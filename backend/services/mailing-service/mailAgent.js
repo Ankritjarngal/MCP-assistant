@@ -9,7 +9,7 @@ export async function mailAgent(query) {
       throw new Error("GOOGLE_API_KEY is not set in the environment variables.");
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
     const systemPrompt = `You are a mailing assistant. Your job is to:
 - Extract the recipient's email address from the query.
