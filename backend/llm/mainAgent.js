@@ -59,7 +59,8 @@ Analyze the user's query. Your response must be a JSON object with a 'tool' key,
     });
 
     if (!response.ok) {
-      console.error("API request failed with status:", response.status);
+      const errorBody = await response.text();
+      console.error("API request failed with status:", response.status, "and body:", errorBody);
       return "unknown";
     }
 
@@ -70,6 +71,9 @@ Analyze the user's query. Your response must be a JSON object with a 'tool' key,
       console.error("No valid content found in API response.");
       return "unknown";
     }
+
+    // DEBUG: Log the raw string from the API before parsing
+    console.log("Raw content from API:", content);
 
     const parsed = JSON.parse(content);
     return parsed.tool;
