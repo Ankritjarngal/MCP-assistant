@@ -47,7 +47,7 @@ Your response must be a JSON object with a single key "operation", and its value
           required: ["operation"],
         },
         temperature: 0,
-        maxOutputTokens: 50,
+        maxOutputTokens: 100,
       },
     };
 
