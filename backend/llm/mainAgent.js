@@ -19,7 +19,7 @@ The available tools are:
 3. ✅ Task Management: Create, assign, track, or manage tasks.
 4. 📄 Documenting service: Create, edit, and manage documents.
 
-Analyze the user's query. Your response must be a JSON object with a 'tool' key, and its value must strictly be one of: "google calendar", "mailing service", "task management", or "documenting service".`;
+Analyze the user's query. Your response must be a JSON object with a 'tool' key, and its value must strictly be one of: "google calendar", "mailing service", "task management", or "documenting service". Strictly return only the JSON object with no extra text, markdown, or explanations.`;
 
     const payload = {
       systemInstruction: {
@@ -79,3 +79,4 @@ Analyze the user's query. Your response must be a JSON object with a 'tool' key,
     return "unknown";
   }
 }
+
