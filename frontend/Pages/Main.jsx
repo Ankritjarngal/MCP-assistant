@@ -189,7 +189,6 @@ function Main() {
           title="Toggle theme"
         >
           {darkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
-          <span>{darkMode ? 'Light' : 'Dark'}</span>
         </button>
         <button
           onClick={handleLogout}
