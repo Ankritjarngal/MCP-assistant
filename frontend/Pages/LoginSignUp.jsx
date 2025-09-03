@@ -19,8 +19,12 @@ function AuthPage() {
     localStorage.setItem('darkMode', JSON.stringify(darkMode))
     if (darkMode) {
       document.documentElement.classList.add('dark')
+      document.body.style.backgroundColor = '#111827' // gray-900
+      document.documentElement.style.backgroundColor = '#111827'
     } else {
       document.documentElement.classList.remove('dark')
+      document.body.style.backgroundColor = '#f9fafb' // gray-100
+      document.documentElement.style.backgroundColor = '#f9fafb'
     }
   }, [darkMode])
 

@@ -162,8 +162,43 @@ export default function RenderScore({ res, darkMode = false }) {
               {/* Service-specific formatted data */}
               {hasResponse && serviceInfo.type !== 'unknown' && formatServiceData()}
               
-              {/* Raw response data for debugging */}
+              {/* Error state for unknown services */}
+              {(!hasResponse || serviceInfo.type === 'unknown') && (
+                <div className={`p-4 rounded-md ${
+                  darkMode ? 'bg-red-900/20 border border-red-800' : 'bg-red-50 border border-red-200'
+                }`}>
+                  <p className={`text-sm ${darkMode ? 'text-red-300' : 'text-red-700'}`}>
+                    {!hasResponse ? 'No response data available' : 'Unknown service type - raw data may be available below'}
+                  </p>
+                </div>
+              )}
+
+              {/* Button to show raw data */}
               {hasResponse && (
+                <div className="flex justify-center pt-2">
+                  <button
+                    onClick={() => setShowRawData(!showRawData)}
+                    className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md border transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      darkMode 
+                        ? 'text-gray-400 bg-gray-800 border-gray-600 hover:bg-gray-700 hover:text-gray-300' 
+                        : 'text-gray-600 bg-gray-50 border-gray-200 hover:bg-gray-100 hover:text-gray-700'
+                    }`}
+                  >
+                    <span className="mr-2">
+                      {showRawData ? "Hide Raw Data" : "Show Raw Data"}
+                    </span>
+                    <ChevronDown 
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        showRawData ? "rotate-180" : "rotate-0"
+                      }`} 
+                      aria-hidden="true" 
+                    />
+                  </button>
+                </div>
+              )}
+
+              {/* Raw response data for debugging */}
+              {hasResponse && showRawData && (
                 <div className={`border rounded-md ${darkMode ? 'border-gray-600 bg-gray-750' : 'border-gray-200 bg-gray-50'}`}>
                   <div className={`flex items-center justify-between px-4 py-2 border-b rounded-t-md ${
                     darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-200'
@@ -178,7 +213,6 @@ export default function RenderScore({ res, darkMode = false }) {
                     </span>
                   </div>
                   <pre
-                    id="response-details"
                     className={`p-4 text-sm overflow-x-auto max-h-64 font-mono rounded-b-md ${
                       darkMode ? 'text-gray-300 bg-gray-800' : 'text-gray-800 bg-white'
                     }`}
@@ -189,17 +223,6 @@ export default function RenderScore({ res, darkMode = false }) {
                   >
                     {typeof res === "string" ? res : JSON.stringify(res, null, 2)}
                   </pre>
-                </div>
-              )}
-
-              {/* Error state for unknown services */}
-              {(!hasResponse || serviceInfo.type === 'unknown') && (
-                <div className={`p-4 rounded-md ${
-                  darkMode ? 'bg-red-900/20 border border-red-800' : 'bg-red-50 border border-red-200'
-                }`}>
-                  <p className={`text-sm ${darkMode ? 'text-red-300' : 'text-red-700'}`}>
-                    {!hasResponse ? 'No response data available' : 'Unknown service type - raw data may be available in details above'}
-                  </p>
                 </div>
               )}
             </div>
