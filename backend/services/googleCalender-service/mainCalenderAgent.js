@@ -1,75 +1,78 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
 config();
 
-// Initialize the Google Generative AI client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 export async function calendarOperationAgent(query) {
   try {
-    const systemPrompt = `
-You are a calendar operation classifier.
-Your job is to analyze the user's query and return the most appropriate calendar operation from the list below.
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not set in the environment variables.");
+    }
 
-Valid operations:
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+
+    const systemPrompt = `You are a calendar operation classifier. Your job is to analyze the user's query and determine the most appropriate calendar operation.
+
+Your response must be a JSON object with a single key "operation", and its value must be one of the following strings:
 - create_event
 - reschedule_event
 - cancel_event
 - list_events
-- check_availability
+- check_availability`;
 
-🧠 Example Inputs and Outputs:
-Query: "Set up a meeting with Ankit tomorrow at 10am"
-Response: create_event
-
-Query: "Cancel the demo meeting on Friday"
-Response: cancel_event
-
-Query: "Show me my meetings next week"
-Response: list_events
-
-Query: "Is 4 PM free for me and Alex on Monday?"
-Response: check_availability
-
-⚠️ IMPORTANT:
-- Return only the operation name as plain text. No JSON, no formatting, no explanation.
-- If unsure, return "unknown".
-`;
-
-    // Get the Gemini 1.5 Flash model with the system prompt
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest",
-      systemInstruction: systemPrompt,
-    });
-
-    const userPrompt = `Query: ${query}`;
-
-    // Generate the classification
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+    const payload = {
+      systemInstruction: {
+        parts: [{ text: systemPrompt }],
+      },
+      contents: [
+        {
+          parts: [{ text: `Query: ${query}` }],
+        },
+      ],
       generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            operation: {
+              type: "STRING",
+              enum: [
+                "create_event",
+                "reschedule_event",
+                "cancel_event",
+                "list_events",
+                "check_availability",
+              ],
+            },
+          },
+          required: ["operation"],
+        },
         temperature: 0,
         maxOutputTokens: 50,
       },
+    };
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
 
-    const responseText = result.response.text().trim().toLowerCase();
-
-    // Your existing validation logic is excellent and remains the same.
-    const validOps = [
-      "create_event",
-      "reschedule_event",
-      "cancel_event",
-      "list_events",
-      "check_availability",
-    ];
-
-    if (validOps.includes(responseText)) {
-      return responseText;
-    } else {
-      console.warn("Unknown or invalid calendar operation returned:", responseText);
+    if (!response.ok) {
+      console.error("API request failed with status:", response.status);
       return "unknown";
     }
+
+    const result = await response.json();
+    const content = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!content) {
+      console.error("No valid content found in API response.");
+      return "unknown";
+    }
+
+    const parsed = JSON.parse(content);
+    return parsed.operation;
+
   } catch (err) {
     console.error("Error classifying calendar operation:", err);
     return "unknown";

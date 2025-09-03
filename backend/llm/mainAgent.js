@@ -1,13 +1,16 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
 
 config();
 
-// Initialize the Google AI client
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-
 export async function reason(query) {
   try {
+    const apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      throw new Error("GOOGLE_API_KEY is not set in the environment variables.");
+    }
+
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
+
     const systemPrompt = `You are an intelligent component in a server that selects the most suitable internal tool based on a user query. Your only job is to determine which tool is appropriate.
 
 The available tools are:
@@ -16,40 +19,61 @@ The available tools are:
 3. ✅ Task Management: Create, assign, track, or manage tasks.
 4. 📄 Documenting service: Create, edit, and manage documents.
 
-Read the user's query and reason which tool is best. Output only the tool name in plain lowercase.
-Your response must strictly be one of: "google calendar", "mailing service", "task management", "documenting service".`;
+Analyze the user's query. Your response must be a JSON object with a 'tool' key, and its value must strictly be one of: "google calendar", "mailing service", "task management", or "documenting service".`;
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash-latest",
-      systemInstruction: systemPrompt,
-    });
-
-    const generationConfig = {
-      temperature: 0, // Set to 0 for deterministic classification
-      maxOutputTokens: 50,
+    const payload = {
+      systemInstruction: {
+        parts: [{ text: systemPrompt }],
+      },
+      contents: [
+        {
+          parts: [{ text: `query by user: ${query}` }],
+        },
+      ],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            tool: {
+              type: "STRING",
+              enum: [
+                "google calendar",
+                "mailing service",
+                "task management",
+                "documenting service",
+              ],
+            },
+          },
+          required: ["tool"],
+        },
+        temperature: 0,
+        maxOutputTokens: 50,
+      },
     };
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: `query by user: ${query}` }] }],
-      generationConfig,
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
-    
-    const cleanedResponse = result.response.text().trim().toLowerCase();
 
-    // Validate response against allowed tools
-    const validTools = [
-      "google calendar",
-      "mailing service",
-      "task management",
-      "documenting service",
-    ];
-
-    if (validTools.includes(cleanedResponse)) {
-      return cleanedResponse;
-    } else {
-      console.warn("Received unknown tool from AI:", cleanedResponse);
+    if (!response.ok) {
+      console.error("API request failed with status:", response.status);
       return "unknown";
     }
+
+    const result = await response.json();
+    const content = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!content) {
+      console.error("No valid content found in API response.");
+      return "unknown";
+    }
+
+    const parsed = JSON.parse(content);
+    return parsed.tool;
+    
   } catch (err) {
     console.error("Error in tool selection agent:", err);
     return "unknown";

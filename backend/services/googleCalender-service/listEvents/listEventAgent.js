@@ -1,61 +1,76 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
 config();
 
-// Initialize the Google Generative AI client with your API key
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 export async function listEventAgent(query) {
   try {
-    const systemPrompt = `
-You are a calendar assistant. Your task is to extract filter parameters from a user's natural language query for listing Google Calendar events.
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not set in the environment variables.");
+    }
 
-Return ONLY a **valid JSON** object with the following structure:
-{
-  "timeMin": "2025-05-01T00:00:00",   // Optional. Start of the date/time range in ISO 8601 format.
-  "timeMax": "2025-05-05T23:59:59",   // Optional. End of the date/time range in ISO 8601 format.
-  "query": "search term"             // Optional. A keyword or phrase to filter events.
-}
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
 
-💡 Notes:
+    const systemPrompt = `You are a calendar assistant. Your task is to extract filter parameters from a user's natural language query for listing Google Calendar events.
+
+Return ONLY a valid JSON object with the specified structure.
 - If a time range is not explicitly mentioned, omit that field.
 - If no search keyword is mentioned, set "query" to an empty string.
-- NEVER include markdown, triple backticks, or any extra text. Return ONLY the raw JSON object.
-- Use ISO 8601 format for all dates (e.g., "2025-05-01T00:00:00").
-- Keep the times in the user's local time zone when inferable. Otherwise, assume midnight and end-of-day times.
+- NEVER include markdown, triple backticks, or any extra text.
+- Use ISO 8601 format for all dates (e.g., "2025-05-01T00:00:00").`;
 
-🧠 Example:
-Query: "Show meetings about design between May 2 and May 4"
-Response:
-{
-  "timeMin": "2025-05-02T00:00:00",
-  "timeMax": "2025-05-04T23:59:59",
-  "query": "design"
-}
-`;
-
-    // Get the Gemini 1.5 Flash model and provide the system prompt
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash-latest",
-      systemInstruction: systemPrompt,
-    });
-
-    const userPrompt = `Query: ${query}`;
-
-    // Generate content with JSON output enforced
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+    const payload = {
+      systemInstruction: {
+        parts: [{ text: systemPrompt }],
+      },
+      contents: [
+        {
+          parts: [{ text: `Query: ${query}` }],
+        },
+      ],
       generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            timeMin: {
+              type: "STRING",
+              description: "Optional. Start of the date/time range in ISO 8601 format.",
+            },
+            timeMax: {
+              type: "STRING",
+              description: "Optional. End of the date/time range in ISO 8601 format.",
+            },
+            query: {
+              type: "STRING",
+              description: "Optional. A keyword or phrase to filter events.",
+            },
+          },
+        },
         temperature: 0.3,
         maxOutputTokens: 1024,
-        responseMimeType: "application/json",
       },
+    };
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
 
-    const responseText = result.response.text();
-    
-    // The response is a guaranteed valid JSON string due to responseMimeType
-    return JSON.parse(responseText);
+    if (!response.ok) {
+      console.error("API request failed with status:", response.status);
+      return null;
+    }
+
+    const result = await response.json();
+    const content = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!content) {
+      console.error("No valid content found in API response.");
+      return null;
+    }
+
+    return JSON.parse(content);
 
   } catch (err) {
     console.error("Error extracting list event parameters:", err);
