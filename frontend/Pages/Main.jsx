@@ -3,7 +3,7 @@ import axios from 'axios'
 import '../src/App.css'
 import RenderScore from './RenderScore'
 import { jwtDecode } from 'jwt-decode'
-import { FiLogOut } from 'react-icons/fi'  
+import { FiLogOut, FiMoon, FiSun } from 'react-icons/fi'  
 
 function Main() {
   const [query, setQuery] = useState('')
@@ -11,12 +11,25 @@ function Main() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [authChecked, setAuthChecked] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode')
+    return saved ? JSON.parse(saved) : false
+  })
 
   const [queryHistory, setQueryHistory] = useState(() => {
     const storedHistory = localStorage.getItem('queryHistory')
     return storedHistory ? JSON.parse(storedHistory) : []
   })
+
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode))
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [darkMode])
   
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -44,12 +57,14 @@ function Main() {
       window.location.href = '/'
     }
   }, [])
-  
-  
 
   useEffect(() => {
     localStorage.setItem('queryHistory', JSON.stringify(queryHistory))
   }, [queryHistory])
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode)
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -112,7 +127,7 @@ function Main() {
       })
 
     setQuery('')
-    setSidebarOpen(false) // Close sidebar on mobile after submission
+    setSidebarOpen(false)
   }
 
   const handleHistoryClick = historyItem => {
@@ -124,7 +139,7 @@ function Main() {
       setResponse(null)
       setError(historyItem.status === 'error')
     }
-    setSidebarOpen(false) // Close sidebar on mobile after selection
+    setSidebarOpen(false)
   }
 
   const clearHistory = () => {
@@ -132,36 +147,55 @@ function Main() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
-      {/* Mobile Header - only visible on small screens */}
-      <div className="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} flex flex-col lg:flex-row transition-colors duration-200`}>
+      {/* Mobile Header */}
+      <div className={`lg:hidden ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm border-b px-4 py-3 flex items-center justify-between transition-colors duration-200`}>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded hover:bg-gray-100"
+          className={`p-2 rounded ${darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-900'} transition-colors duration-200`}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">Assistant</h1>
-        <button
-          onClick={handleLogout}
-          className="flex items-center space-x-1 px-3 py-2 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200"
-        >
-          <span className="text-sm">Logout</span>
-          <FiLogOut className="w-4 h-4" />
-        </button>
+        <h1 className={`text-lg font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Assistant</h1>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={toggleDarkMode}
+            className={`p-2 rounded-md ${darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'} transition-colors duration-200`}
+            title="Toggle theme"
+          >
+            {darkMode ? <FiSun className="w-4 h-4" /> : <FiMoon className="w-4 h-4" />}
+          </button>
+          <button
+            onClick={handleLogout}
+            className={`flex items-center space-x-1 px-3 py-2 rounded-md ${darkMode ? 'bg-blue-900 text-blue-200 hover:bg-blue-800 border-blue-700' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200'} border transition-colors duration-200`}
+          >
+            <span className="text-sm">Logout</span>
+            <FiLogOut className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Desktop Logout Button - only visible on large screens */}
-      <button
-        onClick={handleLogout}
-        className="hidden lg:flex absolute top-4 right-4 z-20 items-center space-x-2 px-4 py-2 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 border border-blue-200 shadow-sm transition-all duration-200 font-medium"
-        title="Logout"
-      >
-        <span>Logout</span>
-        <FiLogOut className="w-5 h-5" />
-      </button>
+      {/* Desktop Controls */}
+      <div className="hidden lg:flex absolute top-4 right-4 z-20 items-center space-x-2">
+        <button
+          onClick={toggleDarkMode}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-md ${darkMode ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700 border-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300'} border shadow-sm transition-all duration-200 font-medium`}
+          title="Toggle theme"
+        >
+          {darkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+          <span>{darkMode ? 'Light' : 'Dark'}</span>
+        </button>
+        <button
+          onClick={handleLogout}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-md ${darkMode ? 'bg-blue-900 text-blue-200 hover:bg-blue-800 border-blue-700' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200'} border shadow-sm transition-all duration-200 font-medium`}
+          title="Logout"
+        >
+          <span>Logout</span>
+          <FiLogOut className="w-5 h-5" />
+        </button>
+      </div>
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
@@ -174,15 +208,15 @@ function Main() {
       {/* Sidebar */}
       <div className={`
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-        lg:translate-x-0 fixed lg:relative z-40 w-80 bg-white shadow-lg border-r border-gray-200 h-full lg:h-auto transition-transform duration-300 ease-in-out
+        lg:translate-x-0 fixed lg:relative z-40 w-80 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-lg border-r h-full lg:h-auto transition-all duration-300 ease-in-out
       `}>
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Query History</h2>
+        <div className={`p-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-b flex items-center justify-between`}>
+          <h2 className={`text-lg font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Query History</h2>
           <div className="flex items-center space-x-2">
             {queryHistory.length > 0 && (
               <button
                 onClick={clearHistory}
-                className="text-sm text-red-600 hover:text-red-700 font-medium"
+                className={`text-sm font-medium ${darkMode ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'} transition-colors duration-200`}
               >
                 Clear All
               </button>
@@ -192,8 +226,8 @@ function Main() {
 
         <div className="h-full overflow-y-auto pb-4">
           {queryHistory.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">
-              <div className="text-gray-400 mb-2">
+            <div className={`p-4 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <div className={`mb-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                 <svg
                   className="mx-auto h-12 w-12"
                   fill="none"
@@ -216,14 +250,18 @@ function Main() {
                 <div
                   key={item.id}
                   onClick={() => handleHistoryClick(item)}
-                  className="p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
+                  className={`p-3 rounded-lg border cursor-pointer transition-colors duration-200 ${
+                    darkMode 
+                      ? 'border-gray-600 hover:bg-gray-700 bg-gray-750' 
+                      : 'border-gray-200 hover:bg-gray-50 bg-white'
+                  }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className={`text-sm font-medium truncate ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
                         {item.query}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">{item.timestamp}</p>
+                      <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{item.timestamp}</p>
                     </div>
                     <div className="ml-2 flex-shrink-0">
                       {item.status === 'pending' && (
@@ -247,9 +285,9 @@ function Main() {
       {/* Main Content */}
       <div className="flex-1 py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 sm:p-6 transition-colors duration-200`}>
             <div className="space-y-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-6">Assistant</h1>
+              <h1 className={`text-xl sm:text-2xl font-bold text-center mb-6 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Assistant</h1>
 
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <input
@@ -258,32 +296,40 @@ function Main() {
                   onChange={e => setQuery(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleClick()}
                   placeholder="Enter your query..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={`flex-1 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
+                    darkMode 
+                      ? 'border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400 focus:border-blue-400' 
+                      : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:border-blue-500'
+                  }`}
                 />
                 {!loading ? (
                   <button
                     onClick={handleClick}
                     disabled={!query.trim()}
-                    className="w-full sm:w-auto bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className={`w-full sm:w-auto py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
+                      !query.trim()
+                        ? darkMode ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                        : darkMode ? 'bg-blue-700 text-white hover:bg-blue-600' : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
                   >
                     Submit
                   </button>
                 ) : (
                   <div className="flex items-center justify-center py-2 px-6">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    <div className={`animate-spin rounded-full h-5 w-5 border-b-2 ${darkMode ? 'border-blue-400' : 'border-blue-600'}`}></div>
                   </div>
                 )}
               </div>
 
               {error && (
-                <div className="text-red-600 font-medium mt-4">
+                <div className={`font-medium mt-4 ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
                   An error occurred. Please try again.
                 </div>
               )}
 
               {response && (
                 <div>
-                  <RenderScore res={response} />
+                  <RenderScore res={response} darkMode={darkMode} />
                 </div>
               )}
             </div>
@@ -294,4 +340,4 @@ function Main() {
   )
 }
 
-export default Main  
+export default Main
