@@ -1,65 +1,54 @@
-import { OpenAI } from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
-import { UsersForMcp } from "../database/db.js";
-import { getIntentsData } from "./AllQueries.js";
+import { getIntentsData } from "./AllQueries.js"; // Assuming this function exists
 
 config();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-});
-
-function cleanPlainMarkdown(response) {
-  return response
-    .replace(/^```plain\s*/, "")
-    .replace(/```$/, "")
-    .trim();
-}
+// Initialize the Google AI client
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 export async function enhancedIntent(query, intent, email) {
   const data = await getIntentsData(query, intent, email);
   const finalQuery = await Agent(data, query, intent);
   console.log("Final query:", finalQuery);
-
   return finalQuery;
 }
 
 async function Agent(data, query, intent) {
-  const contextSummary = data.length > 0
-    ? `Previous related queries: ${data.join("; ")}.`
-    : "No previous related queries found.";
+  try {
+    const contextSummary = data.length > 0 ?
+      `Previous related queries: ${data.join("; ")}.` :
+      "No previous related queries found.";
 
-  const detailedPrompt = `
-You are an intelligent assistant module within a modular command processing (MCP) system. Your task is to enhance and refine user queries to make them clearer and more actionable for downstream agents. Your output must be a well-structured plain text version of the user's intent — without altering its core meaning.
-
-Use the following guidelines:
-- Analyze past related queries only if they are clearly relevant to the current one.
-- Do not force inclusion of past context if it doesn't apply.
+    const systemPrompt = `You are an intelligent assistant that enhances user queries to make them clearer for other system agents. Your output must be only the refined plain text query.
+- Use past context only if it's clearly relevant.
 ${intent === "google calendar"
-    ? "- If the intent is related to Google Calendar, carefully assess previous queries for helpful context (like recurring meeting names, participants, or event timing) and enhance accordingly, only if appropriate."
-    : "- For all other intents, prioritize the clarity of the current query over historical context unless it's directly applicable."
+  ? "- For Google Calendar intents, use context like meeting names or participants to add clarity if appropriate."
+  : "- For all other intents, prioritize the current query's clarity."
 }
-- Ensure the refined query is clean, coherent, and ready for further processing.
-- Do not mention what changes were made.
-- Output only the improved plain query.
+- Do not explain the changes you made. Output only the improved plain query.`;
 
-Current user query: "${query}"
-Context summary: ${contextSummary}
-`;
+    const userPrompt = `Current user query: "${query}"\nContext summary: ${contextSummary}`;
 
-  const result = await openai.chat.completions.create({
-    model: "deepseek/deepseek-chat-v3-0324:free",
-    messages: [
-      { role: "system", content: "You are a helpful assistant that refines queries for downstream agents." },
-      { role: "user", content: detailedPrompt }
-    ],
-    temperature: 0.3,
-    max_tokens: 150,
-  });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash-latest",
+      systemInstruction: systemPrompt,
+    });
 
-  const rawResponse = result.choices[0].message.content;
-  const cleanedResponse = cleanPlainMarkdown(rawResponse);
+    const generationConfig = {
+      temperature: 0.3,
+      maxOutputTokens: 150,
+    };
 
-  return cleanedResponse;
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig,
+    });
+
+    return result.response.text().trim();
+
+  } catch (error) {
+    console.error("Error in enhancedIntent Agent:", error);
+    return query; // Return the original query on failure
+  }
 }

@@ -1,75 +1,50 @@
-import { OpenAI } from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
+
 config();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-});
+// Initialize the Google AI client
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 export async function mailAgent(query) {
   try {
-    const systemPrompt = `
-You are a mailing assistant. Your job is to:
+    const systemPrompt = `You are a mailing assistant. Your job is to:
 - Extract the recipient's email address from the query.
 - Determine a suitable subject line.
-- Generate a professional email message based on the query.
+- Generate a professional email message body based on the query.
 
-Return only a valid JSON object in the following format:
+Return only a valid JSON object in the following format, with no other text or markdown:
 {
   "to": "recipient@example.com",
   "subject": "Email Subject",
   "message": "Email body message."
 }
 
-IMPORTANT: Return only the raw JSON with no backticks or markdown formatting.
+If no email is clearly mentioned, return an empty string for the "to" field.`;
 
-Example:
-Query: "Write a mail to john.doe@example.com to confirm the meeting scheduled for tomorrow"
-Response:
-{
-  "to": "john.doe@example.com",
-  "subject": "Meeting Confirmation for Tomorrow",
-  "message": "I'm writing to confirm our meeting scheduled for tomorrow. Please let me know if you have any updates or if there's anything I should prepare in advance."
-}
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash-latest",
+      systemInstruction: systemPrompt,
+    });
+    
+    // Using Gemini's dedicated JSON mode
+    const generationConfig = {
+      temperature: 0.1,
+      maxOutputTokens: 2048,
+      responseMimeType: 'application/json',
+    };
 
-Notes:
-- If no email is clearly mentioned, return an empty string for "to".
-- Never include any explanation, markdown formatting, or triple backticks.
-`;
-
-    const userPrompt = `Query: ${query}`;
-
-    const result = await openai.chat.completions.create({
-      model: "deepseek/deepseek-chat-v3-0324:free",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
-      temperature: 0,
-      max_tokens: 2048,
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: `Query: ${query}` }] }],
+      generationConfig,
     });
 
-    let responseText = result.choices[0].message.content.trim();
+    // The response text is a guaranteed JSON string, so we just parse it.
+    const responseText = result.response.text();
+    return JSON.parse(responseText);
 
-    try {
-      return JSON.parse(responseText);
-    } catch (e) {
-      // Try cleaning markdown fences
-      let cleaned = responseText.replace(/^```json\s*/, "").replace(/```$/, "").trim();
-
-      // Also strip anything before the first '{'
-      cleaned = cleaned.replace(/^.*?(\{.*)$/s, "$1").trim();
-
-      try {
-        return JSON.parse(cleaned);
-      } catch (err) {
-        console.warn("Could not parse response JSON even after cleaning. Raw:", responseText);
-        return null;
-      }
-    }
   } catch (err) {
-    console.error("Error in mailing reasoning:", err);
+    console.error("Error in mailing reasoning agent:", err);
     return null;
   }
 }

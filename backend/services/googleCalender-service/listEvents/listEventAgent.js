@@ -1,11 +1,9 @@
-import { OpenAI } from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
 config();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-});
+// Initialize the Google Generative AI client with your API key
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function listEventAgent(query) {
   try {
@@ -36,34 +34,29 @@ Response:
 }
 `;
 
-    const userPrompt = `Query: ${query}`;
-
-    const result = await openai.chat.completions.create({
-      model: "meta-llama/llama-3.3-8b-instruct:free",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
-      temperature: 0.3,
-      max_tokens: 1024,
+    // Get the Gemini 1.5 Flash model and provide the system prompt
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash-latest",
+      systemInstruction: systemPrompt,
     });
 
-    const responseText = result.choices[0].message.content.trim();
+    const userPrompt = `Query: ${query}`;
 
-    try {
-      return JSON.parse(responseText);
-    } catch (e) {
-      const cleanedResponse = responseText
-        .replace(/^```json\s*/, "")
-        .replace(/```$/, "")
-        .trim();
-      try {
-        return JSON.parse(cleanedResponse);
-      } catch (innerErr) {
-        console.warn("Could not parse response JSON even after cleaning. Raw:", responseText);
-        return null;
-      }
-    }
+    // Generate content with JSON output enforced
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 1024,
+        responseMimeType: "application/json",
+      },
+    });
+
+    const responseText = result.response.text();
+    
+    // The response is a guaranteed valid JSON string due to responseMimeType
+    return JSON.parse(responseText);
+
   } catch (err) {
     console.error("Error extracting list event parameters:", err);
     return null;

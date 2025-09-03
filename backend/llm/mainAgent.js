@@ -1,72 +1,40 @@
-import { OpenAI } from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
+
 config();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-});
-
-function cleanPlainMarkdown(response) {
-  return response
-    .replace(/^```plain\s*/, "")
-    .replace(/```$/, "")
-    .trim();
-}
+// Initialize the Google AI client
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 export async function reason(query) {
   try {
-    const systemPrompt = `
-You are an intelligent assistant component within a modular command processing (MCP) server designed to select the most suitable internal tool based on user queries. You do not execute the commands but determine which tool is appropriate for handling the query. 
+    const systemPrompt = `You are an intelligent component in a server that selects the most suitable internal tool based on a user query. Your only job is to determine which tool is appropriate.
 
-The assistant currently supports the following tools and their capabilities:
+The available tools are:
+1. 📅 Google Calendar: Schedule, reschedule, cancel, or view meetings and events.
+2. 📧 Mailing Service: Compose, send, schedule, or manage emails.
+3. ✅ Task Management: Create, assign, track, or manage tasks.
+4. 📄 Documenting service: Create, edit, and manage documents.
 
-1. 📅 Google Calendar
-   - Schedule, reschedule, or cancel meetings.
-   - Find mutually available time slots.
-   - Set up recurring meetings.
-   - Send meeting notifications and reminders.
-   - View or manage upcoming events.
+Read the user's query and reason which tool is best. Output only the tool name in plain lowercase.
+Your response must strictly be one of: "google calendar", "mailing service", "task management", "documenting service".`;
 
-2. 📧 Mailing Service
-   - Compose and send emails.
-   - Schedule emails to be sent at a future time.
-   - Use email templates for faster composition.
-   - Track follow-ups or send reminders for replies.
-   - Manage draft messages.
-
-3. ✅ Task Management (internal service)
-   - Create new tasks and set their priority.
-   - Assign deadlines and configure reminders.
-   - Track task completion and generate reports.
-   - View, edit, or delete tasks.
-
-4. Documenting service 
-   - Create, edit, and manage documents.
-   - Collaborate with team members on documents.
-   - Store and organize documents in folders.
-    
-
-🧠 Your task is to read the user's natural language query and reason out which of the above tools is best suited to handle it. Output only the tool name in plain lowercase (e.g., "google calendar", "mailing service", "documenting service" or "task management"). If multiple tools are equally relevant, choose the most directly applicable one.
-
-The response must strictly be:
-"google calendar", "mailing service", "documenting service", or "task management".
-    `;
-
-    const msg = `query by user: ${query}`;
-
-    const result = await openai.chat.completions.create({
-      model: "deepseek/deepseek-chat-v3-0324:free",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: msg }
-      ],
-      temperature: 0,
-      max_tokens: 100,
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash-latest",
+      systemInstruction: systemPrompt,
     });
 
-    let rawResponse = result.choices[0].message.content.trim();
-    const cleanedResponse = cleanPlainMarkdown(rawResponse).toLowerCase();
+    const generationConfig = {
+      temperature: 0, // Set to 0 for deterministic classification
+      maxOutputTokens: 50,
+    };
+
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: `query by user: ${query}` }] }],
+      generationConfig,
+    });
+    
+    const cleanedResponse = result.response.text().trim().toLowerCase();
 
     // Validate response against allowed tools
     const validTools = [
@@ -79,11 +47,11 @@ The response must strictly be:
     if (validTools.includes(cleanedResponse)) {
       return cleanedResponse;
     } else {
-      console.warn("Received unknown tool:", cleanedResponse);
+      console.warn("Received unknown tool from AI:", cleanedResponse);
       return "unknown";
     }
   } catch (err) {
-    console.error("Error in tool selection:", err);
+    console.error("Error in tool selection agent:", err);
     return "unknown";
   }
 }

@@ -1,11 +1,9 @@
-import { OpenAI } from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
 config();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-});
+// Initialize the Google Generative AI client
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function calendarOperationAgent(query) {
   try {
@@ -38,20 +36,26 @@ Response: check_availability
 - If unsure, return "unknown".
 `;
 
-    const userPrompt = `Query: ${query}`;
-
-    const result = await openai.chat.completions.create({
-      model: "deepseek/deepseek-chat-v3-0324:free",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
-      temperature: 0,
-      max_tokens: 50,
+    // Get the Gemini 1.5 Flash model with the system prompt
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash-latest",
+      systemInstruction: systemPrompt,
     });
 
-    const responseText = result.choices[0].message.content.trim().toLowerCase();
+    const userPrompt = `Query: ${query}`;
 
+    // Generate the classification
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 50,
+      },
+    });
+
+    const responseText = result.response.text().trim().toLowerCase();
+
+    // Your existing validation logic is excellent and remains the same.
     const validOps = [
       "create_event",
       "reschedule_event",
