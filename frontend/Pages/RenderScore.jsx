@@ -3,6 +3,7 @@ import { CheckCircle, XCircle, ChevronDown, Mail, Calendar, HelpCircle } from "l
 
 export default function RenderScore({ res, darkMode = false }) {
   const [expanded, setExpanded] = useState(false);
+  const [showRawData, setShowRawData] = useState(false);
   
   const hasResponse = res !== undefined && res !== null && res !== "" && !(Array.isArray(res) && res.length === 0);
   
