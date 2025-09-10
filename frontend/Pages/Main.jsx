@@ -3,7 +3,7 @@ import axios from 'axios';
 import '../src/App.css';
 import RenderScore from './RenderScore';
 import { jwtDecode } from 'jwt-decode';
-import { FiLogOut, FiMoon, FiSun, FiMail, FiCalendar, FiTrash2, FiMenu, FiX, FiClock } from 'react-icons/fi';
+import { FiMoon, FiSun, FiMail, FiCalendar, FiTrash2, FiMenu, FiX, FiClock } from 'react-icons/fi';
 import MailsModal from '../Components/MailModal';
 import CalendarModal from '../Components/CalendarModal';
 
@@ -16,7 +16,8 @@ function Main() {
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // For mobile click behavior
+  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(true); // For desktop hover behavior
   const [authChecked, setAuthChecked] = useState(false);
   
   const [darkMode, setDarkMode] = useState(() => JSON.parse(localStorage.getItem('darkMode')) || false);
@@ -157,44 +158,28 @@ function Main() {
   const clearHistory = () => setQueryHistory([]);
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} flex flex-col lg:flex-row transition-colors duration-200`}>
-      {/* Mobile Header */}
-      <div className={`lg:hidden ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm border-b px-4 py-3 flex items-center justify-between`}>
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`p-2 rounded ${darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-900'}`}>
-          <FiMenu className="w-6 h-6" />
-        </button>
-        <h1 className={`text-lg font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Assistant</h1>
-        <div className="flex items-center gap-2">
-          <button onClick={toggleDarkMode} className={`p-2 rounded-md ${darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-            {darkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
-          </button>
-          <UserProfile username={username} onEdit={() => setShowProfileModal(true)} onLogout={handleLogout} darkMode={darkMode} />
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} transition-colors duration-200`}>
+      {/* MODIFIED: Desktop hover trigger area */}
+      <div
+        onMouseEnter={() => setDesktopSidebarCollapsed(false)}
+        className={`hidden lg:block fixed top-0 left-0 h-full z-50 transition-all duration-300 ${desktopSidebarCollapsed ? 'w-16' : 'w-0'}`}
+      >
+        <div className={`p-4 text-gray-500 ${!desktopSidebarCollapsed && 'opacity-0'}`}>
+            <FiMenu className="h-6 w-6" />
         </div>
       </div>
 
-      {/* Desktop Controls */}
-      <div className="hidden lg:flex absolute top-4 right-4 z-20 items-center gap-4">
-        <button onClick={toggleDarkMode} className={`flex items-center gap-2 px-4 py-2 rounded-md ${darkMode ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700 border-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300'} border shadow-sm font-medium`}>
-          {darkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
-        </button>
-        <UserProfile username={username} onEdit={() => setShowProfileModal(true)} onLogout={handleLogout} darkMode={darkMode} />
-      </div>
-
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
       {/* Sidebar */}
-      <aside className={`
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-          lg:translate-x-0 fixed lg:relative z-40 w-full max-w-xs sm:w-80 
+      <aside
+        onMouseLeave={() => setDesktopSidebarCollapsed(true)}
+        className={`
+          fixed inset-y-0 left-0 z-40 w-full max-w-xs sm:w-80 
           ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} 
-          shadow-lg border-r h-full flex flex-col transition-transform duration-300 ease-in-out
-        `}>
+          shadow-lg border-r flex flex-col transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${desktopSidebarCollapsed ? 'lg:-translate-x-full' : 'lg:translate-x-0'}
+        `}
+      >
         <div className={`p-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-b flex items-center justify-between`}>
           <h2 className={`text-xl font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
             History & Tools
@@ -204,7 +189,6 @@ function Main() {
           </button>
         </div>
         
-        {/* MODIFIED: Context buttons moved here from main content */}
         <div className={`p-2 space-y-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-b`}>
             <button onClick={() => { setShowMailsModal(true); setSidebarOpen(false); }} className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${darkMode ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'}`}>
                 <FiMail className="w-5 h-5 flex-shrink-0" />
@@ -258,15 +242,35 @@ function Main() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
+      <main className={`py-8 lg:py-12 px-4 sm:px-6 lg:px-8 transition-all duration-300 ease-in-out ${desktopSidebarCollapsed ? 'lg:pl-16' : 'lg:pl-80'}`}>
+        {/* Mobile Header */}
+        <div className={`lg:hidden ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm border-b px-4 py-3 flex items-center justify-between mb-6 -mx-4 -mt-8 sm:-mx-6`}>
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`p-2 rounded ${darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-900'}`}>
+            <FiMenu className="w-6 h-6" />
+            </button>
+            <h1 className={`text-lg font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Assistant</h1>
+            <div className="flex items-center gap-2">
+            <button onClick={toggleDarkMode} className={`p-2 rounded-md ${darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                {darkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+            </button>
+            <UserProfile username={username} onEdit={() => setShowProfileModal(true)} onLogout={handleLogout} darkMode={darkMode} />
+            </div>
+        </div>
+
+        {/* Desktop Controls */}
+        <div className="hidden lg:flex absolute top-4 right-4 z-20 items-center gap-4">
+          <button onClick={toggleDarkMode} className={`flex items-center gap-2 px-4 py-2 rounded-md ${darkMode ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700 border-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300'} border shadow-sm font-medium`}>
+            {darkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+          </button>
+          <UserProfile username={username} onEdit={() => setShowProfileModal(true)} onLogout={handleLogout} darkMode={darkMode} />
+        </div>
+
         <div className="max-w-3xl mx-auto">
           <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 sm:p-6 transition-colors duration-200`}>
             <div className="space-y-6">
               <h1 className={`text-2xl sm:text-3xl font-bold text-center mb-6 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
                 MCP Assistant
               </h1>
-              
-              {/* REMOVED: Mail/Calendar buttons were here */}
 
               <div className="flex flex-col sm:flex-row gap-2">
                 <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleClick()} placeholder="Enter your query..." className={`flex-1 px-4 py-3 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200 ${darkMode ? 'border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'}`} />
