@@ -294,7 +294,7 @@ function AuthPage() {
 
       {/* Updated Toast Notification */}
       <ToastNotification
-        message="Successfully signed in!"
+        message="Signed in!"
         isVisible={showToast}
         darkMode={darkMode}
         type="success"
