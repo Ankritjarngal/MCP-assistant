@@ -117,7 +117,7 @@ function AuthPage() {
     setError('');
 
     try {
-      const res = await axios.post('https://mcp-assistant-backend.onrender.com/apii/auth', {
+      const res = await axios.post('https://mcp-assistant-backend.onrender.com/api/auth', {
         code: code,
       });
 
