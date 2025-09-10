@@ -2,46 +2,72 @@ import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
-import { FiMoon, FiSun, FiCheckCircle } from 'react-icons/fi';
+import { FiMoon, FiSun, FiCheck, FiX } from 'react-icons/fi';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-// New ToastNotification component
-function ToastNotification({ message, isVisible, darkMode, type = 'success' }) {
+// Updated ToastNotification component
+function ToastNotification({ message, isVisible, darkMode, type = 'success', onClose }) {
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, onClose]);
+
   if (!isVisible) return null;
 
-  const getColors = () => {
-    switch (type) {
-      case 'success':
-        return {
-          bg: darkMode ? 'bg-green-700' : 'bg-green-100',
-          text: darkMode ? 'text-green-200' : 'text-green-800',
-          icon: darkMode ? 'text-green-300' : 'text-green-600',
-          border: darkMode ? 'border-green-600' : 'border-green-300'
-        };
-      default:
-        return {
-          bg: darkMode ? 'bg-blue-700' : 'bg-blue-100',
-          text: darkMode ? 'text-blue-200' : 'text-blue-800',
-          icon: darkMode ? 'text-blue-300' : 'text-blue-600',
-          border: darkMode ? 'border-blue-600' : 'border-blue-300'
-        };
+  const getStyles = () => {
+    if (darkMode) {
+      return {
+        container: 'bg-gray-800 text-gray-100 border-gray-700',
+        icon: type === 'success' ? 'text-blue-400' : 'text-red-400',
+        closeBtn: 'text-gray-400 hover:text-gray-200'
+      };
+    } else {
+      return {
+        container: 'bg-white text-gray-800 border-gray-200',
+        icon: type === 'success' ? 'text-blue-500' : 'text-red-500',
+        closeBtn: 'text-gray-500 hover:text-gray-700'
+      };
     }
   };
 
-  const colors = getColors();
+  const styles = getStyles();
 
   return (
     <div
-      className={`fixed bottom-4 left-1/2 -translate-x-1/2 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 transform ${colors.bg} ${colors.text} border ${colors.border}`}
-      style={{
-        opacity: isVisible ? 1 : 0,
-        transform: `translate(-50%, ${isVisible ? '0' : '20px'})`,
-      }}
+      className={`fixed top-4 right-4 max-w-sm w-full mx-4 sm:mx-0 p-4 rounded-lg shadow-lg z-50 border backdrop-blur-sm transition-all duration-300 transform ${
+        styles.container
+      } ${
+        isVisible 
+          ? 'translate-y-0 opacity-100 scale-100' 
+          : '-translate-y-2 opacity-0 scale-95'
+      }`}
     >
-      <div className="flex items-center space-x-3">
-        {type === 'success' && <FiCheckCircle className={`w-5 h-5 ${colors.icon}`} />}
-        <span className="font-medium">{message}</span>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="flex-shrink-0">
+            {type === 'success' ? (
+              <div className={`w-6 h-6 rounded-full ${darkMode ? 'bg-blue-500/20' : 'bg-blue-50'} flex items-center justify-center`}>
+                <FiCheck className={`w-4 h-4 ${styles.icon}`} />
+              </div>
+            ) : (
+              <div className={`w-6 h-6 rounded-full ${darkMode ? 'bg-red-500/20' : 'bg-red-50'} flex items-center justify-center`}>
+                <FiX className={`w-4 h-4 ${styles.icon}`} />
+              </div>
+            )}
+          </div>
+          <span className="text-sm font-medium truncate">{message}</span>
+        </div>
+        <button
+          onClick={onClose}
+          className={`flex-shrink-0 p-1 rounded transition-colors ${styles.closeBtn}`}
+        >
+          <FiX className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
@@ -126,13 +152,12 @@ function AuthPage() {
       localStorage.setItem('token', token);
       localStorage.setItem('email', email);
 
-      // Show the new toast notification
+      // Show the updated toast notification
       setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000); // Hide toast after 3 seconds
 
       window.history.replaceState({}, document.title, window.location.pathname);
 
-      setTimeout(() => navigate('/chat'), 1000);
+      setTimeout(() => navigate('/chat'), 1500);
 
     } catch (err) {
       console.error('Auth code exchange error:', err);
@@ -181,6 +206,10 @@ function AuthPage() {
     } else {
       setError('Google OAuth not initialized');
     }
+  };
+
+  const handleCloseToast = () => {
+    setShowToast(false);
   };
 
   return (
@@ -263,11 +292,13 @@ function AuthPage() {
         </div>
       </div>
 
-      {/* New Toast Notification */}
+      {/* Updated Toast Notification */}
       <ToastNotification
-        message="Logged in successfully!"
+        message="Successfully signed in!"
         isVisible={showToast}
         darkMode={darkMode}
+        type="success"
+        onClose={handleCloseToast}
       />
     </div>
   );
