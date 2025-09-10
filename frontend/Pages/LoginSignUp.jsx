@@ -51,12 +51,12 @@ function ToastNotification({ message, isVisible, darkMode, type = 'success', onC
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="flex-shrink-0">
             {type === 'success' ? (
-              <div className={`w-6 h-6 rounded-full ${darkMode ? 'bg-blue-500/20' : 'bg-blue-50'} flex items-center justify-center`}>
-                <FiCheck className={`w-4 h-4 ${styles.icon}`} />
+              <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${darkMode ? 'bg-blue-500/20' : 'bg-blue-50'} flex items-center justify-center`}>
+                <FiCheck className={`w-3 h-3 sm:w-4 sm:h-4 ${styles.icon}`} />
               </div>
             ) : (
-              <div className={`w-6 h-6 rounded-full ${darkMode ? 'bg-red-500/20' : 'bg-red-50'} flex items-center justify-center`}>
-                <FiX className={`w-4 h-4 ${styles.icon}`} />
+              <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${darkMode ? 'bg-red-500/20' : 'bg-red-50'} flex items-center justify-center`}>
+                <FiX className={`w-3 h-3 sm:w-4 sm:h-4 ${styles.icon}`} />
               </div>
             )}
           </div>
