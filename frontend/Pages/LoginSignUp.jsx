@@ -169,7 +169,7 @@ function AuthPage() {
         'profile'
       ].join(' '),
       ux_mode: 'redirect',
-      redirect_uri: 'https://mcp-assistant.vercel.app/',
+      redirect_uri: 'https://mcp-assistant.vercel.app',
       access_type: 'offline',
       prompt: 'consent'
     });
