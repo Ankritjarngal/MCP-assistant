@@ -8,6 +8,7 @@ import { UsersForMcp } from '../database/db.js';
 import { createToken, verifyToken } from '../jsonWebtoken/Token.js';
 import { saveToken, getToken, deleteToken } from './tokenStore.js';
 import { tokensUsers } from '../database/tokens.js';
+import {authorize} from '../services/mailing-service/authAndCompose.js';
 
 // Environment variables for Google OAuth
 const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
@@ -190,7 +191,89 @@ app.post('/api/submit', verifyToken, async (req, res) => {
   }
 });
 
-// Start server
+
+
+app.get('/api/mails', verifyToken, async (req, res) => {
+  const userEmail = req.user.email; // Extracted by verifyToken middleware
+
+  try {
+    const auth = await authorize(userEmail);
+    
+    const gmail = google.gmail({ version: 'v1', auth });
+
+    const response = await gmail.users.messages.list({
+      userId: 'me',
+      maxResults: 10, 
+      labelIds: ['INBOX'], 
+    });
+
+    const messages = response.data.messages || [];
+
+    const messageDetails = await Promise.all(
+      messages.map(msg => gmail.users.messages.get({ userId: 'me', id: msg.id }))
+    );
+
+    const formattedMessages = messageDetails.map(msg => {
+      const headers = msg.data.payload.headers;
+      const subject = headers.find(h => h.name === 'Subject')?.value || 'No Subject';
+      const from = headers.find(h => h.name === 'From')?.value || 'Unknown Sender';
+      const snippet = msg.data.snippet;
+      
+      return {
+        id: msg.data.id,
+        subject,
+        from,
+        snippet,
+      };
+    });
+
+    res.json({ emails: formattedMessages });
+  } catch (err) {
+    console.error("Error fetching emails:", err);
+    res.status(500).json({ error: "Failed to fetch emails" });
+  }
+});
+
+
+
+app.get('/api/calendar', verifyToken, async (req, res) => {
+  const userEmail = req.user.email;
+
+  try {
+    // 1. Authorize the user and get the OAuth2 client
+    const auth = await authorize(userEmail);
+
+    // 2. Initialize the Google Calendar API service
+    const calendar = google.calendar({ version: 'v3', auth });
+    
+    // 3. Make an API call to list events
+    const response = await calendar.events.list({
+      calendarId: 'primary', // 'primary' refers to the user's main calendar
+      timeMin: (new Date()).toISOString(), // Only fetch events from now on
+      maxResults: 10,
+      singleEvents: true,
+      orderBy: 'startTime',
+    });
+
+    const events = response.data.items || [];
+    
+    const formattedEvents = events.map(event => ({
+      id: event.id,
+      summary: event.summary,
+      start: event.start.dateTime || event.start.date,
+      end: event.end.dateTime || event.end.date,
+      location: event.location,
+    }));
+
+    res.json({ events: formattedEvents });
+
+  } catch (err) {
+    console.error("Error fetching calendar events:", err);
+    res.status(500).json({ error: "Failed to fetch calendar events" });
+  }
+});
+
+
 app.listen(3001, () => {
   console.log('Server is running on port 3001');
   console.log('Google Client ID configured:', !!GOOGLE_CLIENT_ID);

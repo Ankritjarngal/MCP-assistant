@@ -1,150 +1,187 @@
-import { useEffect, useState } from 'react'
-import axios from 'axios'
-import { jwtDecode } from 'jwt-decode'
-import { useNavigate } from 'react-router-dom'
-import { FiMoon, FiSun } from 'react-icons/fi'
+import { useEffect, useState, useRef } from 'react';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
+import { FiMoon, FiSun, FiCheckCircle } from 'react-icons/fi';
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+// New ToastNotification component
+function ToastNotification({ message, isVisible, darkMode, type = 'success' }) {
+  if (!isVisible) return null;
+
+  const getColors = () => {
+    switch (type) {
+      case 'success':
+        return {
+          bg: darkMode ? 'bg-green-700' : 'bg-green-100',
+          text: darkMode ? 'text-green-200' : 'text-green-800',
+          icon: darkMode ? 'text-green-300' : 'text-green-600',
+          border: darkMode ? 'border-green-600' : 'border-green-300'
+        };
+      default:
+        return {
+          bg: darkMode ? 'bg-blue-700' : 'bg-blue-100',
+          text: darkMode ? 'text-blue-200' : 'text-blue-800',
+          icon: darkMode ? 'text-blue-300' : 'text-blue-600',
+          border: darkMode ? 'border-blue-600' : 'border-blue-300'
+        };
+    }
+  };
+
+  const colors = getColors();
+
+  return (
+    <div
+      className={`fixed bottom-4 left-1/2 -translate-x-1/2 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 transform ${colors.bg} ${colors.text} border ${colors.border}`}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: `translate(-50%, ${isVisible ? '0' : '20px'})`,
+      }}
+    >
+      <div className="flex items-center space-x-3">
+        {type === 'success' && <FiCheckCircle className={`w-5 h-5 ${colors.icon}`} />}
+        <span className="font-medium">{message}</span>
+      </div>
+    </div>
+  );
+}
 
 function AuthPage() {
-  const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode')
-    return saved ? JSON.parse(saved) : false
-  })
+    const saved = localStorage.getItem('darkMode');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [showToast, setShowToast] = useState(false);
+
+  // useRef to prevent duplicate requests
+  const hasExchangedCode = useRef(false);
 
   useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode))
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
     if (darkMode) {
-      document.documentElement.classList.add('dark')
-      document.body.style.backgroundColor = '#111827' // gray-900
-      document.documentElement.style.backgroundColor = '#111827'
+      document.documentElement.classList.add('dark');
+      document.body.style.backgroundColor = '#111827';
+      document.documentElement.style.backgroundColor = '#111827';
     } else {
-      document.documentElement.classList.remove('dark')
-      document.body.style.backgroundColor = '#f9fafb' // gray-100
-      document.documentElement.style.backgroundColor = '#f9fafb'
+      document.documentElement.classList.remove('dark');
+      document.body.style.backgroundColor = '#f9fafb';
+      document.documentElement.style.backgroundColor = '#f9fafb';
     }
-  }, [darkMode])
+  }, [darkMode]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('token');
     if (token) {
       try {
-        const decoded = jwtDecode(token)
-        const now = Date.now() / 1000
+        const decoded = jwtDecode(token);
+        const now = Date.now() / 1000;
         if (decoded.exp && now < decoded.exp) {
-          navigate('/chat')
+          navigate('/chat');
+          return;
         } else {
-          localStorage.removeItem('token')
-          localStorage.removeItem('email')
+          localStorage.removeItem('token');
+          localStorage.removeItem('email');
         }
       } catch {
-        localStorage.removeItem('token')
-        localStorage.removeItem('email')
+        localStorage.removeItem('token');
+        localStorage.removeItem('email');
       }
     }
 
-    // Check for authorization code in URL params
-    const urlParams = new URLSearchParams(window.location.search)
-    const code = urlParams.get('code')
-    const error = urlParams.get('error')
-    
-    if (error) {
-      setError('Authorization was denied or failed')
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname)
-    } else if (code) {
-      handleAuthorizationCode(code)
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const errorParam = urlParams.get('error');
+
+    if (errorParam) {
+      setError('Authorization was denied or failed');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (code && !hasExchangedCode.current) {
+      // Set the flag to true to prevent future duplicate calls
+      hasExchangedCode.current = true;
+      handleAuthorizationCode(code);
     }
 
-    initializeGoogleOAuth()
-  }, [navigate])
+    initializeGoogleOAuth();
+  }, [navigate]);
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode)
-  }
+    setDarkMode(!darkMode);
+  };
 
   const handleAuthorizationCode = async (code) => {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError('');
 
     try {
-      // Send the authorization code to your backend
-      const res = await axios.post('https://mcp-assistant-backend.onrender.com/api/auth', {
+      const res = await axios.post('https://mcp-assistant-backend.onrender.com/apii/auth', {
         code: code,
-        // Include any additional data your backend needs
-      })
-      
-      const token = res.data.token
-      
-      localStorage.setItem('token', token)
-      localStorage.setItem('email', res.data.email)
+      });
 
-      const successEl = document.getElementById('successNotification')
-      if (successEl) {
-        successEl.children[1].textContent = 'Logged in successfully!'
-        successEl.classList.remove('hidden')
-        successEl.classList.add('flex')
-      }
+      const { token, email } = res.data;
 
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname)
-      
-      setTimeout(() => navigate('/chat'), 1000)
+      localStorage.setItem('token', token);
+      localStorage.setItem('email', email);
+
+      // Show the new toast notification
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000); // Hide toast after 3 seconds
+
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      setTimeout(() => navigate('/chat'), 1000);
+
     } catch (err) {
-      console.error('Auth code exchange error:', err)
-      const message = err.response?.data?.error || err.message || 'Authentication failed'
-      setError(message)
-      // Clean up URL on error
-      window.history.replaceState({}, document.title, window.location.pathname)
+      console.error('Auth code exchange error:', err);
+      const message = err.response?.data?.error || err.message || 'Authentication failed';
+      setError(message);
+      window.history.replaceState({}, document.title, window.location.pathname);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const initializeGoogleOAuth = () => {
     if (!window.google) {
-      const script = document.createElement('script')
-      script.src = 'https://accounts.google.com/gsi/client'
-      script.async = true
-      script.defer = true
-      script.onload = setupGoogleOAuth
-      document.head.appendChild(script)
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = setupGoogleOAuth;
+      document.head.appendChild(script);
     } else {
-      setupGoogleOAuth()
+      setupGoogleOAuth();
     }
-  }
+  };
 
-  let codeClient
-
+  let codeClient;
   const setupGoogleOAuth = () => {
-    // Use authorization code flow instead of implicit flow
     codeClient = window.google.accounts.oauth2.initCodeClient({
       client_id: GOOGLE_CLIENT_ID,
       scope: [
         'https://www.googleapis.com/auth/gmail.send',
         'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/gmail.readonly',
         'email',
         'profile'
       ].join(' '),
       ux_mode: 'redirect',
-      redirect_uri: 'https://mcp-assistant.vercel.app',
-      // Request offline access to get refresh token
+      redirect_uri: 'https://mcp-assistant.vercel.app/',
       access_type: 'offline',
-      // Force approval prompt to ensure refresh token
       prompt: 'consent'
-    })
-  }
+    });
+  };
 
   const handleSignInClick = () => {
     if (window.google && window.google.accounts.oauth2 && codeClient) {
-      codeClient.requestCode()
+      codeClient.requestCode();
     } else {
-      setError('Google OAuth not initialized')
+      setError('Google OAuth not initialized');
     }
-  }
+  };
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-100'} flex items-center justify-center px-4 py-12 transition-colors duration-200`}>
@@ -152,8 +189,8 @@ function AuthPage() {
       <button
         onClick={toggleDarkMode}
         className={`absolute top-4 right-4 p-3 rounded-full shadow-lg transition-all duration-200 ${
-          darkMode 
-            ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700 border border-gray-600' 
+          darkMode
+            ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700 border border-gray-600'
             : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
         }`}
         title="Toggle theme"
@@ -206,8 +243,8 @@ function AuthPage() {
 
           {error && (
             <div className={`text-sm p-3 rounded border ${
-              darkMode 
-                ? 'text-red-300 bg-red-900/50 border-red-700' 
+              darkMode
+                ? 'text-red-300 bg-red-900/50 border-red-700'
                 : 'text-red-700 bg-red-100 border-red-300'
             }`}>
               {error}
@@ -226,17 +263,14 @@ function AuthPage() {
         </div>
       </div>
 
-      <div
-        id="successNotification"
-        className="hidden fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded shadow-lg items-center space-x-2 z-50"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-        <span>Success!</span>
-      </div>
+      {/* New Toast Notification */}
+      <ToastNotification
+        message="Logged in successfully!"
+        isVisible={showToast}
+        darkMode={darkMode}
+      />
     </div>
-  )
+  );
 }
 
-export default AuthPage
+export default AuthPage;
